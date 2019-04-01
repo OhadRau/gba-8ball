@@ -124,7 +124,8 @@ void initializeAppState(AppState *appState) {
 void cleanupAppState(AppState *appState) {
     free(appState->cue);
     free(appState->other);
-    free(appState);
+    // Uh... apparently the appState is on the stack oof
+    //free(appState);
 }
 
 // TA-TODO: Add any process functions for sub-elements of your app here.
@@ -171,11 +172,17 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     nextAppState.other = malloc(sizeof(ball_t));
     *(nextAppState.other) = *(currentAppState->other);
 
-    update_ball(nextAppState.cue);
-    update_ball(nextAppState.other);
+    // If nothing is moving
+    if (nextAppState.cue->vx == 0 && nextAppState.cue->vy == 0) {
+        // Cue mode!
+    } else {
+        // Just calculate motion
+        update_ball(nextAppState.cue);
+        update_ball(nextAppState.other);
 
-    if (check_collision(nextAppState.cue, nextAppState.other)) {
-        collide(nextAppState.cue, nextAppState.other);
+        if (check_collision(nextAppState.cue, nextAppState.other)) {
+            collide(nextAppState.cue, nextAppState.other);
+        }
     }
 
     return nextAppState;
