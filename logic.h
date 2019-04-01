@@ -3,7 +3,7 @@
 
 #include "gba.h"
 
-#define FIXED_RESOLUTION 8
+#define FIXED_RESOLUTION 4
 
 #define FIXED_TO_INT(F) ((F) >> FIXED_RESOLUTION)
 #define INT_TO_FIXED(I) ((I) << FIXED_RESOLUTION)

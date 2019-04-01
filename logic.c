@@ -43,7 +43,11 @@ static int check_collision(ball_t *a, ball_t *b) {
 
     fixed_t max_dist = a->radius + b->radius;
 
-    // TODO: Calculating the sqrt is slow, so try to rule out false collisions early
+    // Calculating the sqrt is slow, so try to rule out false collisions early
+    if (dx > max_dist || dy > max_dist) {
+        return 0;
+    }
+
     fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
     
     return d <= max_dist;
