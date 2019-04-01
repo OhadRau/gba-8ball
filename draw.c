@@ -7,6 +7,9 @@
 
 #include <stdio.h>
 
+#define MIN(x, y) ((x < y) ? x : y)
+#define MAX(x, y) ((x < y) ? y : x)
+
 #define CLEAR_COLOR COLOR(0, 12, 5)
 
 static void drawBall(ball_t *ball) {
@@ -26,13 +29,63 @@ static void undrawBall(ball_t *ball) {
     drawRectDMA(x - r, y - r, 2 * r, 2 * r, CLEAR_COLOR);
 }
 
+static void drawCue(ball_t *cue_ball, cue_t *cue) {
+    if (cue->x != 0 || cue->y != 0) {
+        drawString(0, 0, "CUE NOT ZERO", BLACK);
+    }
+
+    fixed_t sx = cue_ball->x;
+    fixed_t sy = cue_ball->y;
+
+    fixed_t ex = cue->x;
+    fixed_t ey = cue->y;
+
+    sx = 0, sy = 0;
+
+    ex = INT_TO_FIXED(5);
+    ey = INT_TO_FIXED(5);
+
+    fixed_t slope = INT_TO_FIXED(5);//FIXED_DIV(ey - sy, ex - sx);
+
+    if (slope < 0) {
+        for (fixed_t x = ey; x <= sy; x += FIXED_ONE) {
+            fixed_t y = ex + FIXED_MULT(slope, x);
+
+            int xx = FIXED_TO_INT(x);
+            int yy = FIXED_TO_INT(y);
+
+            setPixel(xx, yy, cue->color);
+        }
+    } else {
+        for (fixed_t x = sy; x <= ey; x += FIXED_ONE) {
+            fixed_t y = sx + FIXED_MULT(slope, x);
+
+            int xx = FIXED_TO_INT(x);
+            int yy = FIXED_TO_INT(y);
+
+            setPixel(xx, yy, cue->color);
+        }
+    }
+}
+
+static void undrawCue(ball_t *cue_ball, cue_t *cue) {
+    fixed_t sx = cue_ball->x;
+    fixed_t sy = cue_ball->y;
+
+    fixed_t ex = cue->x;
+    fixed_t ey = cue->y;
+
+    drawRectDMA(sx, sy, ex - sx, ey - sy, CLEAR_COLOR);
+}
+
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     fillScreenDMA(CLEAR_COLOR);
 
-    drawBall(state->cue);
+    drawBall(state->cue_ball);
     drawBall(state->other);
+    drawCue(state->cue_ball, state->cue);
 }
 
 // Draw the title screen
@@ -47,13 +100,14 @@ void fullDrawTitleScreen(void) {
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
     // Undraw balls
-    undrawBall(state->cue);
+    undrawBall(state->cue_ball);
     undrawBall(state->other);
+    undrawCue(state->cue_ball, state->cue);
 }
 
 // This function will be used to draw things that might have moved in a frame.
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state) {
-    drawBall(state->cue);
+    drawBall(state->cue_ball);
     drawBall(state->other);
 }

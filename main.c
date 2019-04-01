@@ -75,7 +75,7 @@ int main(void) {
                 // Draw the current state
                 drawAppState(&nextAppState);
 
-                // Free the current AppState
+                // Free the previous state
                 cleanupAppState(&currentAppState);
 
                 // Now set the current state as the next state for the next iter.

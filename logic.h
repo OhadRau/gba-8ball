@@ -22,10 +22,21 @@ typedef struct {
 } ball_t;
 
 typedef struct {
+    u16 color;
+
+    fixed_t length;
+    fixed_t angle;
+
+    fixed_t x, y;
+} cue_t;
+
+typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
 
-    ball_t *cue;
+    cue_t *cue;
+
+    ball_t *cue_ball;
     ball_t *other;
 } AppState;
 

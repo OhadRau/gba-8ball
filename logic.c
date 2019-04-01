@@ -7,7 +7,7 @@
    (like FISR) or by using a lookup table
    if we can constrain these values to a
    given range and round as needed */
-/*fixed_t fixed_sqrt(fixed_t f) {
+fixed_t fixed_sqrt(fixed_t f) {
     if (f < INT_TO_FIXED(2)) {
         return f;
     }
@@ -17,7 +17,11 @@
     } else {
         return next + FIXED_ONE;
     }
-}*/
+}
+
+/*
+// IDK Why, but this works only for 4 bits of fixed point :^(
+
 static fixed_t fixed_sqrt(fixed_t f) {
     if (f < 0) {
         f = -f;
@@ -25,16 +29,28 @@ static fixed_t fixed_sqrt(fixed_t f) {
 
     // Initial guess: f/2
     fixed_t guess = f >> 1;
-    fixed_t prev = FIXED_ONE;
 
     for (int iter = 0; iter < 10; iter++) {
-        // Average out f/guess and f/prev
-        fixed_t tmp = (FIXED_DIV(f, guess) + FIXED_DIV(f, prev)) / 2;
-        prev = guess;
-        guess = tmp;
+        fixed_t err = FIXED_DIV(f - FIXED_MULT(guess, guess), guess << 1);
+        guess += err;
     };
 
     return guess;
+}*/
+
+fixed_t fixed_sin(fixed_t f) {
+    fixed_t less180 = INT_TO_FIXED(180) - f;
+    fixed_t num = FIXED_MULT(4 * f, less180);
+    fixed_t denom = INT_TO_FIXED(40500) - FIXED_MULT(f, less180);
+    return FIXED_DIV(num, denom);
+}
+
+fixed_t fixed_cos(fixed_t f) {
+    fixed_t f_squared = FIXED_MULT(f, f);
+    fixed_t pi_squared = INT_TO_FIXED(32400);
+    fixed_t num = pi_squared - (4 * f_squared);
+    fixed_t denom = pi_squared + f_squared;
+    return FIXED_DIV(num, denom);
 }
 
 static int check_collision(ball_t *a, ball_t *b) {
@@ -102,14 +118,22 @@ static void collide(ball_t *a, ball_t *b) {
 void initializeAppState(AppState *appState) {
     appState->gameOver = 0;
 
-    ball_t *cue = malloc(sizeof(ball_t));
-    cue->color = WHITE;
-    cue->radius = INT_TO_FIXED(5);
+    cue_t *cue = malloc(sizeof(cue_t));
+    cue->color = YELLOW;
+    cue->length = INT_TO_FIXED(50);
+    cue->angle = INT_TO_FIXED(0);
     cue->x = INT_TO_FIXED(50);
-    cue->y = INT_TO_FIXED(50);
-    cue->vx = INT_TO_FIXED(10);
-    cue->vy = INT_TO_FIXED(0);
+    cue->y = INT_TO_FIXED(0);
     appState->cue = cue;
+
+    ball_t *cue_ball = malloc(sizeof(ball_t));
+    cue_ball->color = WHITE;
+    cue_ball->radius = INT_TO_FIXED(5);
+    cue_ball->x = INT_TO_FIXED(50);
+    cue_ball->y = INT_TO_FIXED(50);
+    cue_ball->vx = INT_TO_FIXED(0);
+    cue_ball->vy = INT_TO_FIXED(0);
+    appState->cue_ball = cue_ball;
 
     ball_t *other = malloc(sizeof(ball_t));
     other->color = BLUE;
@@ -122,8 +146,9 @@ void initializeAppState(AppState *appState) {
 }
 
 void cleanupAppState(AppState *appState) {
-    free(appState->cue);
+    free(appState->cue_ball);
     free(appState->other);
+    free(appState->cue);
     // Uh... apparently the appState is on the stack oof
     //free(appState);
 }
@@ -167,21 +192,29 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     UNUSED(keysPressedNow);
 
     // Copy the balls into the new state (without reusing the same pointer)
-    nextAppState.cue = malloc(sizeof(ball_t));
-    *(nextAppState.cue) = *(currentAppState->cue);
+    nextAppState.cue_ball = malloc(sizeof(ball_t));
+    *(nextAppState.cue_ball) = *(currentAppState->cue_ball);
     nextAppState.other = malloc(sizeof(ball_t));
     *(nextAppState.other) = *(currentAppState->other);
+    nextAppState.cue = malloc(sizeof(cue_t));
+    *(nextAppState.cue) = *(currentAppState->cue);
 
     // If nothing is moving
-    if (nextAppState.cue->vx == 0 && nextAppState.cue->vy == 0) {
+    if (nextAppState.cue_ball->vx == 0 && nextAppState.cue_ball->vy == 0) {
         // Cue mode!
+        nextAppState.cue->x = nextAppState.cue->length;//FIXED_MULT(nextAppState.cue->length, fixed_cos(nextAppState.cue->angle));
+        nextAppState.cue->y = nextAppState.cue->length;//FIXED_MULT(nextAppState.cue->length, fixed_sin(nextAppState.cue->angle));
+
+        if (KEY_DOWN(ANY_KEY, keysPressedNow)) {
+            nextAppState.cue->angle += FIXED_ONE;
+        }
     } else {
         // Just calculate motion
-        update_ball(nextAppState.cue);
+        update_ball(nextAppState.cue_ball);
         update_ball(nextAppState.other);
 
-        if (check_collision(nextAppState.cue, nextAppState.other)) {
-            collide(nextAppState.cue, nextAppState.other);
+        if (check_collision(nextAppState.cue_ball, nextAppState.other)) {
+            collide(nextAppState.cue_ball, nextAppState.other);
         }
     }
 
