@@ -1,4 +1,5 @@
 #include "logic.h"
+#include "genlut/lut.h"
 #include <stdlib.h>
 
 #define FRICTION 1
@@ -19,7 +20,7 @@
     }
 }*/
 
-static fixed_t fixed_sqrt(fixed_t f) {
+/*static fixed_t fixed_sqrt(fixed_t f) {
     if (f < 0) {
         f = -f;
     }
@@ -48,7 +49,7 @@ fixed_t fixed_cos(fixed_t f) {
     fixed_t num = pi_squared - (4 * f_squared);
     fixed_t denom = pi_squared + f_squared;
     return FIXED_DIV(num, denom);
-}
+}*/
 
 static int check_collision(ball_t *a, ball_t *b) {
     fixed_t dx = a->x - b->x;
@@ -61,7 +62,7 @@ static int check_collision(ball_t *a, ball_t *b) {
         return 0;
     }
 
-    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
     
     return d <= max_dist;
 }
@@ -87,7 +88,7 @@ static void collide(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
-    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
 
     // Normal to collision
     // Division is slow, can we get rid of this?
@@ -199,8 +200,8 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     // If nothing is moving
     if (nextAppState.cue_ball->vx == 0 && nextAppState.cue_ball->vy == 0) {
         // Cue mode!
-        nextAppState.cue->x = FIXED_MULT(nextAppState.cue->length, fixed_cos(nextAppState.cue->angle));
-        nextAppState.cue->y = FIXED_MULT(nextAppState.cue->length, fixed_sin(nextAppState.cue->angle));
+        nextAppState.cue->x = FIXED_MULT(nextAppState.cue->length, FIXED_COS(nextAppState.cue->angle));
+        nextAppState.cue->y = FIXED_MULT(nextAppState.cue->length, FIXED_SIN(nextAppState.cue->angle));
 
         if (KEY_DOWN(ANY_KEY, keysPressedNow)) {
             nextAppState.cue->angle += FIXED_ONE;
