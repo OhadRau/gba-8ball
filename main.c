@@ -24,9 +24,9 @@ typedef enum {
 
 #define INIT_SPRITE(LOCATION, NAME) \
     (LOCATION) = (OBJ_ATTR) { \
-        .attr0 = (ATTR0_Y(32) | ATTR0_HIDE | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
-        .attr1 = (ATTR1_X(32) | NAME##_BALL_SPRITE_SIZE), \
-        .attr2 = (ATTR2_ID(NAME##_BALL_ID) | ATTR2_PALBANK(NAME##_BALL_PALETTE_ID)) \
+        .attr0 = (s16) (ATTR0_Y(32) | ATTR0_HIDE | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
+        .attr1 = (s16) (ATTR1_X(32) | NAME##_BALL_SPRITE_SIZE), \
+        .attr2 = (s16) (ATTR2_ID(NAME##_BALL_ID) | ATTR2_PALBANK(NAME##_BALL_PALETTE_ID)) \
     };
 
 void init_objects(void) {
@@ -64,7 +64,7 @@ void init_objects(void) {
 
 int main(void) {
     // Copy tiles & palettes for sprites into object memory
-    memcpy(&tile_mem[4][0], sprites, SPRITES_SIZE);
+    memcpy(&tile_mem[5][0], sprites, SPRITES_SIZE);
     memcpy(pal_obj_mem, sprites_palette, SPRITES_PALETTE_SIZE);
 
     oam_init(obj_buffer, 128);
@@ -94,13 +94,13 @@ int main(void) {
 
                 // TA-TODO: Draw the start state here.
                 fullDrawTitleScreen();
+                
                 state = TITLE_SCREEN;
                 break;
             case TITLE_SCREEN:
                 // TA-TODO: Check for a button press here to start the app.
                 // Start the app by switching the state to APP_INIT.
                 if (KEY_JUST_PRESSED(ANY_KEY, currentButtons, previousButtons)) {
-                    REG_DISPCNT &= ~MODE3;
                     state = APP_INIT;
                 }
                 break;
