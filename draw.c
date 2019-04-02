@@ -66,14 +66,26 @@ static void undrawCue(ball_t *cue_ball, cue_t *cue) {
     fixed_t ex = cue->x;
     fixed_t ey = cue->y;
 
-    if (sx < ex && sy < ey) {
-        drawRectDMA(sx, sy, ex - sx, ey - sy, CLEAR_COLOR);
-    } else if (sx < ex && ey < sy) {
-        drawRectDMA(sx, ey, ex - sx, sy - ey, CLEAR_COLOR);
-    } else if (ex < sx && sy < ey) {
-      drawRectDMA(ex, sy, sx - ex, ey - sy, CLEAR_COLOR);
-    } else if (ex < sx && ey < sy) {
-        drawRectDMA(ex, ey, sx - ex, sy - ey, CLEAR_COLOR);
+    fixed_t slope = FIXED_DIV(ey - sy, ex - sx);
+
+    if (slope < 0) {
+        for (fixed_t x = ey; x <= sy; x += FIXED_ONE) {
+            fixed_t y = ex + FIXED_MULT(slope, x);
+
+            int xx = FIXED_TO_INT(x);
+            int yy = FIXED_TO_INT(y);
+
+            setPixel(xx, yy, CLEAR_COLOR);
+        }
+    } else {
+        for (fixed_t x = sy; x <= ey; x += FIXED_ONE) {
+            fixed_t y = sx + FIXED_MULT(slope, x);
+
+            int xx = FIXED_TO_INT(x);
+            int yy = FIXED_TO_INT(y);
+
+            setPixel(xx, yy, CLEAR_COLOR);
+        }
     }
 }
 

@@ -3,53 +3,6 @@
 #include <stdlib.h>
 
 #define FRICTION 1
-/* TODO: Optimize this. We can get it to
-   constant time by a rough approximation
-   (like FISR) or by using a lookup table
-   if we can constrain these values to a
-   given range and round as needed */
-/*fixed_t fixed_sqrt(fixed_t f) {
-    if (f < INT_TO_FIXED(2)) {
-        return f;
-    }
-    fixed_t next = 2 * fixed_sqrt(f >> 2);
-    if (FIXED_MULT((next + FIXED_ONE), (next + FIXED_ONE)) > f) {
-        return next;
-    } else {
-        return next + FIXED_ONE;
-    }
-}*/
-
-/*static fixed_t fixed_sqrt(fixed_t f) {
-    if (f < 0) {
-        f = -f;
-    }
-
-    // Initial guess: f/2
-    fixed_t guess = f >> 1;
-
-    for (int iter = 0; iter < 10; iter++) {
-        fixed_t err = FIXED_DIV(f - FIXED_MULT(guess, guess), guess << 1);
-        guess += err;
-    };
-
-    return guess;
-}
-
-fixed_t fixed_sin(fixed_t f) {
-    fixed_t less180 = INT_TO_FIXED(180) - f;
-    fixed_t num = FIXED_MULT(4 * f, less180);
-    fixed_t denom = INT_TO_FIXED(40500) - FIXED_MULT(f, less180);
-    return FIXED_DIV(num, denom);
-}
-
-fixed_t fixed_cos(fixed_t f) {
-    fixed_t f_squared = FIXED_MULT(f, f);
-    fixed_t pi_squared = INT_TO_FIXED(32400);
-    fixed_t num = pi_squared - (4 * f_squared);
-    fixed_t denom = pi_squared + f_squared;
-    return FIXED_DIV(num, denom);
-}*/
 
 static int check_collision(ball_t *a, ball_t *b) {
     fixed_t dx = a->x - b->x;
@@ -62,7 +15,7 @@ static int check_collision(ball_t *a, ball_t *b) {
         return 0;
     }
 
-    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(abs(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy)));
     
     return d <= max_dist;
 }
@@ -88,7 +41,7 @@ static void collide(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
-    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(abs(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy)));
 
     // Normal to collision
     // Division is slow, can we get rid of this?
