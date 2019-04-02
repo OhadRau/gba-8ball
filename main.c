@@ -24,7 +24,7 @@ typedef enum {
 
 #define INIT_SPRITE(LOCATION, NAME) \
     (LOCATION) = (OBJ_ATTR) { \
-        .attr0 = (s16) (ATTR0_Y(0) | ATTR0_HIDE | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
+        .attr0 = (s16) (ATTR0_Y(0) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
         .attr1 = (s16) (ATTR1_X(0) | NAME##_BALL_SPRITE_SIZE), \
         .attr2 = (s16) (ATTR2_ID(NAME##_BALL_ID) | ATTR2_PALBANK(NAME##_BALL_PALETTE_ID)) \
     };

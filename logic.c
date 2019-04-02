@@ -2,7 +2,7 @@
 #include "genlut/lut.h"
 #include <stdlib.h>
 
-#define FRICTION 1
+#define FRICTION 8
 
 /* Would love to use a LUT for this but there's some constraints:
    - Seems like precision of 1.0 doesn't cut it?
@@ -32,6 +32,11 @@ static int check_collision(ball_t *a, ball_t *b) {
         return 0;
     }
 
+    // Now make sure the Manhattan distance is < 4r
+    if (abs(dx) + abs(dy) > 2 * max_dist) {
+        return 0;
+    }
+
     fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
     
     return d <= max_dist;
@@ -42,10 +47,10 @@ static void update_ball(ball_t *ball) {
     ball->y += ball->vy;
 
     // Remember, velocities are fixed point
-    if (ball->vx < 2 && ball->vx > -2) {
+    if (abs(ball->vx) < 4*FRICTION) {
         ball->vx = 0;
     }
-    if (ball->vy < 2 && ball->vy > -2) {
+    if (abs(ball->vy) < 4*FRICTION) {
         ball->vy = 0;
     } else {
         // vx, vy decay from friction
@@ -101,12 +106,30 @@ void initializeAppState(AppState *appState) {
     cue_ball->vy = INT_TO_FIXED(0);
     appState->cue_ball = cue_ball;
 
+    // Positions to place balls at to form a triangle:
+    // (10 pixels per ball, 5 columns + 4 inner columns, 5 rows)
+    int xs[] = {
+        20,
+        15, 25,
+        10, 20, 30,
+        05, 15, 25, 35,
+        00, 10, 20, 30, 40
+    };
+
+    int ys[] = {
+        0,
+        10, 10,
+        20, 20, 20,
+        30, 30, 30, 30,
+        40, 40, 40, 40, 40
+    };
+
     for (int i = 0; i < 15; i++) {
         appState->balls[i] = malloc(sizeof(ball_t));
         appState->balls[i]->color = BLUE;
         appState->balls[i]->radius = INT_TO_FIXED(5);
-        appState->balls[i]->x = INT_TO_FIXED(120);
-        appState->balls[i]->y = INT_TO_FIXED(55);
+        appState->balls[i]->x = INT_TO_FIXED(120 + xs[i]);
+        appState->balls[i]->y = INT_TO_FIXED(55 + ys[i]);
         appState->balls[i]->vx = INT_TO_FIXED(0);
         appState->balls[i]->vy = INT_TO_FIXED(0);
     }
