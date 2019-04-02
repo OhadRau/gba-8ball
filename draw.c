@@ -17,7 +17,9 @@ static void drawBall(ball_t *ball) {
     int y = FIXED_TO_INT(ball->y);
     int r = FIXED_TO_INT(ball->radius);
 
-    drawRectDMA(x - r, y - r, 2 * r, 2 * r, ball->color);
+    // Don't draw if the balls are off screen
+    if (x - r >= 0 && x - r < WIDTH && y - r >= 0 && y - r < HEIGHT)
+        drawRectDMA(x - r, y - r, 2 * r, 2 * r, ball->color);
 }
 
 static void undrawBall(ball_t *ball) {
@@ -103,7 +105,7 @@ void fullDrawAppState(AppState *state) {
 void fullDrawTitleScreen(void) {
     fillScreenDMA(CLEAR_COLOR);
 
-    drawCenteredString(15, 15, WIDTH - 30, 25, "Welcome to GBA 8Ball!", BLACK);
+    drawCenteredString(15, 15, WIDTH - 30, 25, "Welcome to Ball in Hand!", BLACK);
     drawCenteredString(15, 40, WIDTH - 30, 25, "Press any button to start!", BLACK);
 }
 
