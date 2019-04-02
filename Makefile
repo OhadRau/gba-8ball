@@ -14,7 +14,7 @@ PROGNAME = EightBall
 # that will be compiled into your program. For example
 # if you have main.c and myLib.c then in the following
 # line you would put main.o and myLib.o
-OFILES = gba.o font.o draw.o logic.o main.o images/garbage.o sprites/sprites.o # genlut/sin.o
+OFILES = gba.o font.o draw.o logic.o main.o images/garbage.o sprites/sprites.o genlut/sin.o
 
 ################################################################################
 # These are various settings used to make the GBA toolchain work

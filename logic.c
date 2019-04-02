@@ -102,6 +102,7 @@ void initializeAppState(AppState *appState) {
     cue_ball->radius = INT_TO_FIXED(5);
     cue_ball->x = INT_TO_FIXED(50);
     cue_ball->y = INT_TO_FIXED(50);
+    // Velocities past 6.0 don't work well (overflow?)... Wonder if we can fix this?
     cue_ball->vx = INT_TO_FIXED(3);
     cue_ball->vy = INT_TO_FIXED(0);
     appState->cue_ball = cue_ball;

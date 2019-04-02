@@ -57,12 +57,12 @@ void init_objects(void) {
     OBJ_ATTR *ocue_attr = (OBJ_ATTR *) &ocue->fill0[0];
     *ocue_attr = (OBJ_ATTR) {
         .attr0 = (ATTR0_Y(0) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | CUE_SPRITE_SHAPE),
-        .attr1 = (ATTR1_X(0) | CUE_SPRITE_SIZE),
+        .attr1 = (ATTR1_X(0) | ATTR1_AFFIDX(0) | CUE_SPRITE_SIZE),
         .attr2 = (ATTR2_ID(CUE_ID) | ATTR2_PALBANK(CUE_PALETTE_ID))
     };
-    ocue->pa = 0;
+    ocue->pa = 1 << 8;
     ocue->pb = 0;
-    ocue->pc = 0;
+    ocue->pc = 1 << 8;
     ocue->pd = 0;
 }
 
