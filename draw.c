@@ -31,74 +31,14 @@ static void undrawBall(ball_t *ball) {
     drawRectDMA(x - r, y - r, 2 * r, 2 * r, CLEAR_COLOR);
 }
 
-static void drawCue(ball_t *cue_ball, cue_t *cue) {
-    fixed_t sx = cue_ball->x;
-    fixed_t sy = cue_ball->y;
-
-    fixed_t ex = cue->x;
-    fixed_t ey = cue->y;
-
-    fixed_t slope = FIXED_DIV(ey - sy, ex - sx);
-
-    if (slope < 0) {
-        for (fixed_t x = ey; x <= sy; x += FIXED_ONE) {
-            fixed_t y = ex + FIXED_MULT(slope, x);
-
-            int xx = FIXED_TO_INT(x);
-            int yy = FIXED_TO_INT(y);
-
-            setPixel(xx, yy, cue->color);
-        }
-    } else {
-        for (fixed_t x = sy; x <= ey; x += FIXED_ONE) {
-            fixed_t y = sx + FIXED_MULT(slope, x);
-
-            int xx = FIXED_TO_INT(x);
-            int yy = FIXED_TO_INT(y);
-
-            setPixel(xx, yy, cue->color);
-        }
-    }
-}
-
-static void undrawCue(ball_t *cue_ball, cue_t *cue) {
-    fixed_t sx = cue_ball->x;
-    fixed_t sy = cue_ball->y;
-
-    fixed_t ex = cue->x;
-    fixed_t ey = cue->y;
-
-    fixed_t slope = FIXED_DIV(ey - sy, ex - sx);
-
-    if (slope < 0) {
-        for (fixed_t x = ey; x <= sy; x += FIXED_ONE) {
-            fixed_t y = ex + FIXED_MULT(slope, x);
-
-            int xx = FIXED_TO_INT(x);
-            int yy = FIXED_TO_INT(y);
-
-            setPixel(xx, yy, CLEAR_COLOR);
-        }
-    } else {
-        for (fixed_t x = sy; x <= ey; x += FIXED_ONE) {
-            fixed_t y = sx + FIXED_MULT(slope, x);
-
-            int xx = FIXED_TO_INT(x);
-            int yy = FIXED_TO_INT(y);
-
-            setPixel(xx, yy, CLEAR_COLOR);
-        }
-    }
-}
-
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     fillScreenDMA(CLEAR_COLOR);
 
-    drawBall(state->cue_ball);
-    drawBall(state->other);
-    drawCue(state->cue_ball, state->cue);
+    UNUSED(drawBall);
+    UNUSED(undrawBall);
+    UNUSED(state);
 }
 
 // Draw the title screen
@@ -112,16 +52,17 @@ void fullDrawTitleScreen(void) {
 // This function will be used to undraw (i.e. erase) things that might
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
-    // Undraw balls
-    undrawBall(state->cue_ball);
-    undrawBall(state->other);
-    undrawCue(state->cue_ball, state->cue);
+    UNUSED(state);
 }
 
 // This function will be used to draw things that might have moved in a frame.
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state) {
-    drawBall(state->cue_ball);
-    drawBall(state->other);
-    drawCue(state->cue_ball, state->cue);
+    UNUSED(state);
+}
+
+void updateSprites(AppState *state, OBJ_ATTR *buffer) {
+    // buffer layout = cue ball, 1 .. 15, (AFFINE) cue stick
+    obj_set_pos(&buffer[0], state->cue_ball->x, state->cue_ball->y);
+    obj_set_pos(&buffer[8], state->other->x, state->other->y);
 }

@@ -88,3 +88,56 @@ void drawCenteredString(int x, int y, int width, int height, char *str, u16 colo
     int row = y + ((height - strHeight) >> 1);
     drawString(col, row, str, color);
 }
+
+// From https://www.coranac.com/tonc/text/regobj.htm
+
+OBJ_ATTR obj_buffer[128];
+OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *) obj_buffer;
+
+void oam_init(OBJ_ATTR *obj, u32 count)
+{
+    u32 nn = count;
+    u32 *dst = (u32 *) obj;
+
+    // Hide each object
+    while(nn--)
+    {
+        *dst++ = ATTR0_HIDE;
+        *dst++ = 0;
+    }
+    // init oam
+    oam_copy(oam_mem, obj, count);
+}
+
+void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, u32 count)
+{
+
+// NOTE: while struct-copying is the Right Thing to do here, 
+//   there's a strange bug in DKP that sometimes makes it not work
+//   If you see problems, just use the word-copy version.
+#if 1
+    while(count--)
+        *dst++ = *src++;
+#else
+    u32 *dstw = (u32 *) dst, *srcw = (u32 *) src;
+    while(count--)
+    {
+        *dstw++ = *srcw++;
+        *dstw++ = *srcw++;
+    }
+#endif
+
+}
+
+inline void obj_set_pos(OBJ_ATTR *obj, int x, int y) {
+    BF_SET(obj->attr0, y, ATTR0_Y);
+    BF_SET(obj->attr1, x, ATTR1_X);
+}
+
+inline void obj_hide(OBJ_ATTR *obj) {
+    obj->attr0 |= ATTR0_HIDE;
+}
+
+inline void obj_unhide(OBJ_ATTR *obj) {
+    obj->attr0 &= ~ATTR0_HIDE;
+}

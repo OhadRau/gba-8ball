@@ -23,11 +23,8 @@ typedef struct {
 
 typedef struct {
     u16 color;
-
-    fixed_t length;
     fixed_t angle;
-
-    fixed_t x, y;
+    fixed_t dist_from_ball;
 } cue_t;
 
 typedef struct {
