@@ -47,11 +47,11 @@ static void update_ball(ball_t *ball) {
     }
     if (ball->vy < 2 && ball->vy > -2) {
         ball->vy = 0;
+    } else {
+        // vx, vy decay from friction
+        ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
+        ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
     }
-
-    // vx, vy decay from friction
-    ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
-    ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
 }
 
 static void collide(ball_t *a, ball_t *b) {
@@ -97,23 +97,28 @@ void initializeAppState(AppState *appState) {
     cue_ball->radius = INT_TO_FIXED(5);
     cue_ball->x = INT_TO_FIXED(50);
     cue_ball->y = INT_TO_FIXED(50);
-    cue_ball->vx = INT_TO_FIXED(10);
+    cue_ball->vx = INT_TO_FIXED(3);
     cue_ball->vy = INT_TO_FIXED(0);
     appState->cue_ball = cue_ball;
 
-    ball_t *other = malloc(sizeof(ball_t));
-    other->color = BLUE;
-    other->radius = INT_TO_FIXED(5);
-    other->x = INT_TO_FIXED(120);
-    other->y = INT_TO_FIXED(55);
-    other->vx = INT_TO_FIXED(0);
-    other->vy = INT_TO_FIXED(0);
-    appState->other = other;
+    for (int i = 0; i < 15; i++) {
+        appState->balls[i] = malloc(sizeof(ball_t));
+        appState->balls[i]->color = BLUE;
+        appState->balls[i]->radius = INT_TO_FIXED(5);
+        appState->balls[i]->x = INT_TO_FIXED(120);
+        appState->balls[i]->y = INT_TO_FIXED(55);
+        appState->balls[i]->vx = INT_TO_FIXED(0);
+        appState->balls[i]->vy = INT_TO_FIXED(0);
+    }
 }
 
 void cleanupAppState(AppState *appState) {
     free(appState->cue_ball);
-    free(appState->other);
+
+    for (int i = 0; i < 15; i++) {
+        free(appState->balls[i]);
+    }
+
     free(appState->cue);
     // Uh... apparently the appState is on the stack oof
     //free(appState);
@@ -157,11 +162,17 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     UNUSED(keysPressedBefore);
     UNUSED(keysPressedNow);
 
-    // Copy the balls into the new state (without reusing the same pointer)
+    // Copy the cue ball into the new state (without reusing the same pointer)
     nextAppState.cue_ball = malloc(sizeof(ball_t));
     *(nextAppState.cue_ball) = *(currentAppState->cue_ball);
-    nextAppState.other = malloc(sizeof(ball_t));
-    *(nextAppState.other) = *(currentAppState->other);
+
+    // Copy over the other balls
+    for (int i = 0; i < 15; i++) {
+        nextAppState.balls[i] = malloc(sizeof(ball_t));
+        *(nextAppState.balls[i]) = *(currentAppState->balls[i]);
+    }
+
+    // Copy over the cue
     nextAppState.cue = malloc(sizeof(cue_t));
     *(nextAppState.cue) = *(currentAppState->cue);
 
@@ -171,12 +182,29 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
             nextAppState.cue->angle += FIXED_ONE;
         }
     } else {
-        // Just calculate motion
+        // Just calculate motion for all the balls
         update_ball(nextAppState.cue_ball);
-        update_ball(nextAppState.other);
 
-        if (check_collision(nextAppState.cue_ball, nextAppState.other)) {
-            collide(nextAppState.cue_ball, nextAppState.other);
+        for (int i = 0; i < 15; i++) {
+            update_ball(nextAppState.balls[i]);
+        }
+
+        // Check collision of all the balls
+        UNUSED(collide);
+        UNUSED(check_collision);
+
+        // There's probably a way to cut out repeated comparisons
+        for (int i = 0; i < 15; i++) {
+            if (check_collision(nextAppState.cue_ball, nextAppState.balls[i])) {
+                collide(nextAppState.cue_ball, nextAppState.balls[i]);
+            }
+            for (int j = 0; j < 15; j++) {
+                if (i == j)
+                    break;
+                if (check_collision(nextAppState.balls[i], nextAppState.balls[j])) {
+                    collide(nextAppState.balls[i], nextAppState.balls[j]);
+                }
+            }
         }
 
     }

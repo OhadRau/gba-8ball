@@ -24,8 +24,8 @@ typedef enum {
 
 #define INIT_SPRITE(LOCATION, NAME) \
     (LOCATION) = (OBJ_ATTR) { \
-        .attr0 = (s16) (ATTR0_Y(32) | ATTR0_HIDE | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
-        .attr1 = (s16) (ATTR1_X(32) | NAME##_BALL_SPRITE_SIZE), \
+        .attr0 = (s16) (ATTR0_Y(0) | ATTR0_HIDE | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
+        .attr1 = (s16) (ATTR1_X(0) | NAME##_BALL_SPRITE_SIZE), \
         .attr2 = (s16) (ATTR2_ID(NAME##_BALL_ID) | ATTR2_PALBANK(NAME##_BALL_PALETTE_ID)) \
     };
 
@@ -56,10 +56,14 @@ void init_objects(void) {
     OBJ_AFFINE *ocue = (OBJ_AFFINE *) &obj_buffer[16];
     OBJ_ATTR *ocue_attr = (OBJ_ATTR *) &ocue->fill0[0];
     *ocue_attr = (OBJ_ATTR) {
-        .attr0 = (ATTR0_Y(32) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | CUE_SPRITE_SHAPE),
-        .attr1 = (ATTR1_X(32) | CUE_SPRITE_SIZE),
+        .attr0 = (ATTR0_Y(0) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | CUE_SPRITE_SHAPE),
+        .attr1 = (ATTR1_X(0) | CUE_SPRITE_SIZE),
         .attr2 = (ATTR2_ID(CUE_ID) | ATTR2_PALBANK(CUE_PALETTE_ID))
     };
+    ocue->pa = 0;
+    ocue->pb = 0;
+    ocue->pc = 0;
+    ocue->pd = 0;
 }
 
 int main(void) {
@@ -120,7 +124,7 @@ int main(void) {
             case APP:
                 // Process the app for one frame, store the next state
                 nextAppState = processAppState(&currentAppState, previousButtons, currentButtons);
-                updateSprites(&currentAppState, obj_buffer);
+                updateSprites(&nextAppState, obj_buffer);
 
                 // Wait for VBlank before we do any drawing.
                 waitForVBlank();

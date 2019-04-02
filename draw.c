@@ -12,32 +12,11 @@
 
 #define CLEAR_COLOR COLOR(0, 12, 5)
 
-static void drawBall(ball_t *ball) {
-    int x = FIXED_TO_INT(ball->x);
-    int y = FIXED_TO_INT(ball->y);
-    int r = FIXED_TO_INT(ball->radius);
-
-    // Don't draw if the balls are off screen
-    if (x - r >= 0 && x - r < WIDTH && y - r >= 0 && y - r < HEIGHT)
-        drawRectDMA(x - r, y - r, 2 * r, 2 * r, ball->color);
-}
-
-static void undrawBall(ball_t *ball) {
-    int x = FIXED_TO_INT(ball->x);
-    int y = FIXED_TO_INT(ball->y);
-    int r = FIXED_TO_INT(ball->radius);
-
-    // Since these will generally be images/circles, we have to just clear the entire shape
-    drawRectDMA(x - r, y - r, 2 * r, 2 * r, CLEAR_COLOR);
-}
-
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     fillScreenDMA(CLEAR_COLOR);
 
-    UNUSED(drawBall);
-    UNUSED(undrawBall);
     UNUSED(state);
 }
 
@@ -63,6 +42,15 @@ void drawAppState(AppState *state) {
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
     // buffer layout = cue ball, 1 .. 15, (AFFINE) cue stick
-    obj_set_pos(&buffer[0], state->cue_ball->x, state->cue_ball->y);
-    obj_set_pos(&buffer[8], state->other->x, state->other->y);
+
+    // Update the position for the cue ball
+    obj_set_pos(&buffer[0], FIXED_TO_INT(state->cue_ball->x), FIXED_TO_INT(state->cue_ball->y));
+
+    // Update the positions for other balls
+    for (int i = 0; i < 15; i++) {
+        obj_set_pos(&buffer[i + 1], FIXED_TO_INT(state->balls[i]->x), FIXED_TO_INT(state->balls[i]->y));
+    }
+
+    // Draw the cue at the cue ball's position
+    obj_set_pos(&buffer[16], FIXED_TO_INT(state->cue_ball->x), FIXED_TO_INT(state->cue_ball->y));
 }

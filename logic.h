@@ -3,7 +3,7 @@
 
 #include "gba.h"
 
-#define FIXED_RESOLUTION 4
+#define FIXED_RESOLUTION 8
 
 #define FIXED_TO_INT(F) ((F) >> FIXED_RESOLUTION)
 #define INT_TO_FIXED(I) ((I) << FIXED_RESOLUTION)
@@ -34,7 +34,7 @@ typedef struct {
     cue_t *cue;
 
     ball_t *cue_ball;
-    ball_t *other;
+    ball_t *balls[15];
 } AppState;
 
 // This function can initialize an unused AppState struct.
