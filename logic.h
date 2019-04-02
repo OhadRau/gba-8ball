@@ -8,7 +8,7 @@
 #define FIXED_TO_INT(F) ((F) >> FIXED_RESOLUTION)
 #define INT_TO_FIXED(I) ((I) << FIXED_RESOLUTION)
 #define FIXED_MULT(A, B) (((A) * (B)) >> FIXED_RESOLUTION)
-#define FIXED_DIV(A, B) (((fixed_t) A * (1 << FIXED_RESOLUTION)) / B)
+#define FIXED_DIV(A, B) (((fixed_t) (A) * (1 << FIXED_RESOLUTION)) / (B))
 
 #define FIXED_ONE INT_TO_FIXED(1)
 

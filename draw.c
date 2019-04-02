@@ -30,22 +30,13 @@ static void undrawBall(ball_t *ball) {
 }
 
 static void drawCue(ball_t *cue_ball, cue_t *cue) {
-    if (cue->x != 0 || cue->y != 0) {
-        drawString(0, 0, "CUE NOT ZERO", BLACK);
-    }
-
     fixed_t sx = cue_ball->x;
     fixed_t sy = cue_ball->y;
 
     fixed_t ex = cue->x;
     fixed_t ey = cue->y;
 
-    sx = 0, sy = 0;
-
-    ex = INT_TO_FIXED(5);
-    ey = INT_TO_FIXED(5);
-
-    fixed_t slope = INT_TO_FIXED(5);//FIXED_DIV(ey - sy, ex - sx);
+    fixed_t slope = FIXED_DIV(ey - sy, ex - sx);
 
     if (slope < 0) {
         for (fixed_t x = ey; x <= sy; x += FIXED_ONE) {
@@ -75,7 +66,15 @@ static void undrawCue(ball_t *cue_ball, cue_t *cue) {
     fixed_t ex = cue->x;
     fixed_t ey = cue->y;
 
-    drawRectDMA(sx, sy, ex - sx, ey - sy, CLEAR_COLOR);
+    if (sx < ex && sy < ey) {
+        drawRectDMA(sx, sy, ex - sx, ey - sy, CLEAR_COLOR);
+    } else if (sx < ex && ey < sy) {
+        drawRectDMA(sx, ey, ex - sx, sy - ey, CLEAR_COLOR);
+    } else if (ex < sx && sy < ey) {
+      drawRectDMA(ex, sy, sx - ex, ey - sy, CLEAR_COLOR);
+    } else if (ex < sx && ey < sy) {
+        drawRectDMA(ex, ey, sx - ex, sy - ey, CLEAR_COLOR);
+    }
 }
 
 // This function will be used to draw everything about the app
@@ -110,4 +109,5 @@ void undrawAppState(AppState *state) {
 void drawAppState(AppState *state) {
     drawBall(state->cue_ball);
     drawBall(state->other);
+    drawCue(state->cue_ball, state->cue);
 }

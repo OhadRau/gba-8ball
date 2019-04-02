@@ -7,7 +7,7 @@
    (like FISR) or by using a lookup table
    if we can constrain these values to a
    given range and round as needed */
-fixed_t fixed_sqrt(fixed_t f) {
+/*fixed_t fixed_sqrt(fixed_t f) {
     if (f < INT_TO_FIXED(2)) {
         return f;
     }
@@ -17,10 +17,7 @@ fixed_t fixed_sqrt(fixed_t f) {
     } else {
         return next + FIXED_ONE;
     }
-}
-
-/*
-// IDK Why, but this works only for 4 bits of fixed point :^(
+}*/
 
 static fixed_t fixed_sqrt(fixed_t f) {
     if (f < 0) {
@@ -36,7 +33,7 @@ static fixed_t fixed_sqrt(fixed_t f) {
     };
 
     return guess;
-}*/
+}
 
 fixed_t fixed_sin(fixed_t f) {
     fixed_t less180 = INT_TO_FIXED(180) - f;
@@ -131,7 +128,7 @@ void initializeAppState(AppState *appState) {
     cue_ball->radius = INT_TO_FIXED(5);
     cue_ball->x = INT_TO_FIXED(50);
     cue_ball->y = INT_TO_FIXED(50);
-    cue_ball->vx = INT_TO_FIXED(0);
+    cue_ball->vx = INT_TO_FIXED(10);
     cue_ball->vy = INT_TO_FIXED(0);
     appState->cue_ball = cue_ball;
 
@@ -202,8 +199,8 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     // If nothing is moving
     if (nextAppState.cue_ball->vx == 0 && nextAppState.cue_ball->vy == 0) {
         // Cue mode!
-        nextAppState.cue->x = nextAppState.cue->length;//FIXED_MULT(nextAppState.cue->length, fixed_cos(nextAppState.cue->angle));
-        nextAppState.cue->y = nextAppState.cue->length;//FIXED_MULT(nextAppState.cue->length, fixed_sin(nextAppState.cue->angle));
+        nextAppState.cue->x = FIXED_MULT(nextAppState.cue->length, fixed_cos(nextAppState.cue->angle));
+        nextAppState.cue->y = FIXED_MULT(nextAppState.cue->length, fixed_sin(nextAppState.cue->angle));
 
         if (KEY_DOWN(ANY_KEY, keysPressedNow)) {
             nextAppState.cue->angle += FIXED_ONE;
@@ -216,6 +213,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         if (check_collision(nextAppState.cue_ball, nextAppState.other)) {
             collide(nextAppState.cue_ball, nextAppState.other);
         }
+
     }
 
     return nextAppState;
