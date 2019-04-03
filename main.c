@@ -6,6 +6,7 @@
 // image:
 // #include "images/garbage.h"
 #include "sprites/sprites.h"
+#include "genlut/lut.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,38 +33,41 @@ typedef enum {
 void init_objects(void) {
     OBJ_ATTR *oballs = &obj_buffer[0];
 
-    INIT_SPRITE(oballs[0], CUE);
+    INIT_SPRITE(oballs[0], CUE); // AFF0
     INIT_SPRITE(oballs[1], ONE);
     INIT_SPRITE(oballs[2], TWO);
     INIT_SPRITE(oballs[3], THREE);
-    INIT_SPRITE(oballs[4], FOUR);
+    INIT_SPRITE(oballs[4], FOUR); // AFF1
     INIT_SPRITE(oballs[5], FIVE);
     INIT_SPRITE(oballs[6], SIX);
     INIT_SPRITE(oballs[7], SEVEN);
-    INIT_SPRITE(oballs[8], EIGHT);
+    INIT_SPRITE(oballs[8], EIGHT); // AFF2
     INIT_SPRITE(oballs[9], NINE);
     INIT_SPRITE(oballs[10], TEN);
     INIT_SPRITE(oballs[11], ELEVEN);
-    INIT_SPRITE(oballs[12], TWELVE);
+    INIT_SPRITE(oballs[12], TWELVE); // AFF3
     INIT_SPRITE(oballs[13], THIRTEEN);
     INIT_SPRITE(oballs[14], FOURTEEN);
     INIT_SPRITE(oballs[15], FIFTEEN);
+
+    // Init cue *affine* sprite
+    OBJ_ATTR *ocue = (OBJ_ATTR *) &obj_buffer[16]; // AFF4
+    *ocue = (OBJ_ATTR) {
+        .attr0 = (ATTR0_Y(0) | ATTR0_AFF | ATTR0_BLEND | ATTR0_4BPP | CUE_SPRITE_SHAPE),
+        .attr1 = (ATTR1_X(0) | ATTR1_AFFIDX(4) | CUE_SPRITE_SIZE),
+        .attr2 = (ATTR2_ID(CUE_ID) | ATTR2_PALBANK(CUE_PALETTE_ID))
+    };
 
     // Show the cue ball & 8 ball
     obj_unhide(&oballs[0]);
     obj_unhide(&oballs[8]);
 
-    OBJ_AFFINE *ocue = (OBJ_AFFINE *) &obj_buffer[16];
-    OBJ_ATTR *ocue_attr = (OBJ_ATTR *) &ocue->fill0[0];
-    *ocue_attr = (OBJ_ATTR) {
-        .attr0 = (ATTR0_Y(0) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | CUE_SPRITE_SHAPE),
-        .attr1 = (ATTR1_X(0) | ATTR1_AFFIDX(0) | CUE_SPRITE_SIZE),
-        .attr2 = (ATTR2_ID(CUE_ID) | ATTR2_PALBANK(CUE_PALETTE_ID))
-    };
-    ocue->pa = 1 << 8;
-    ocue->pb = 0;
-    ocue->pc = 1 << 8;
-    ocue->pd = 0;
+    OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
+    
+    acue->pa = FIXED_ONE;
+    acue->pb = 0;
+    acue->pc = 0;
+    acue->pd = FIXED_ONE;
 }
 
 int main(void) {

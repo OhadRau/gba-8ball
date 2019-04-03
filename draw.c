@@ -32,13 +32,21 @@ void fullDrawTitleScreen(void) {
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
     UNUSED(state);
+
+    drawRectDMA(0, 0, 250, 25, CLEAR_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state) {
     UNUSED(state);
+
+    char buffer[128];
+    sprintf(buffer, "cue theta = %d", FIXED_TO_INT(state->cue->angle));
+    drawString(0, 0, buffer, BLUE);
 }
+
+#include "genlut/lut.h"
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
     // buffer layout = cue ball, 1 .. 15, (AFFINE) cue stick
@@ -53,4 +61,11 @@ void updateSprites(AppState *state, OBJ_ATTR *buffer) {
 
     // Draw the cue at the cue ball's position
     obj_set_pos(&buffer[16], FIXED_TO_INT(state->cue_ball->x), FIXED_TO_INT(state->cue_ball->y));
+
+    OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
+    
+    acue->pa =  FIXED_COS(state->cue->angle);
+    acue->pb = -FIXED_SIN(state->cue->angle);
+    acue->pc =  FIXED_SIN(state->cue->angle);
+    acue->pd =  FIXED_COS(state->cue->angle);
 }
