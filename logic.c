@@ -76,6 +76,18 @@ static void update_ball(ball_t *ball) {
     }
 }
 
+static int no_balls_moving(AppState *state) {
+    if (state->cue_ball->vx != 0 || state->cue_ball->vy != 0) {
+        return 0;
+    }
+    for (int i = 0; i < 15; i++) {
+        if (state->balls[i]->vx != 0 || state->balls[i]->vy != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 // Basic collision resolution (get balls unstuck)
 static void collide_static(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
@@ -234,7 +246,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
     *(nextAppState.cue) = *(currentAppState->cue);
 
     // If nothing is moving
-    if (nextAppState.cue_ball->vx == 0 && nextAppState.cue_ball->vy == 0) {
+    if (no_balls_moving(&nextAppState)) {
         nextAppState.cue->alive = ENTITY_ALIVE;
         if (KEY_JUST_RELEASED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
             fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(currentAppState->cue->dist_from_ball, MAX_CUE_DISTANCE));
