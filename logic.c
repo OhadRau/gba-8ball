@@ -215,131 +215,73 @@ void initializeAppState(AppState *appState) {
     }
 }
 
-void cleanupAppState(AppState *appState) {
-    free(appState->cue_ball);
-
-    for (int i = 0; i < 15; i++) {
-        free(appState->balls[i]);
-    }
-
-    free(appState->cue);
-    // Uh... apparently the appState is on the stack oof
-    //free(appState);
-}
-
-// TA-TODO: Add any process functions for sub-elements of your app here.
-// For example, for a snake game, you could have a processSnake function
-// or a createRandomFood function or a processFoods function.
-//
-// e.g.:
-// static Snake processSnake(Snake* currentSnake);
-// static void generateRandomFoods(AppState* currentAppState, AppState* nextAppState);
-
 // This function processes your current app state and returns the new (i.e. next)
 // state of your application.
-AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow) {
-    /* TA-TODO: Do all of your app processing here. This function gets called
-     * every frame.
-     *
-     * To check for key presses, use the KEY_JUST_PRESSED macro for cases where
-     * you want to detect each key press once, or the KEY_DOWN macro for checking
-     * if a button is still down.
-     *
-     * To count time, suppose that the GameBoy runs at a fixed FPS (60fps) and
-     * that VBlank is processed once per frame. Use the vBlankCounter variable
-     * and the modulus % operator to do things once every (n) frames. Note that
-     * you want to process button every frame regardless (otherwise you will
-     * miss inputs.)
-     *
-     * Do not do any drawing here.
-     *
-     * TA-TODO: VERY IMPORTANT! READ THIS PART.
-     * You need to perform all calculations on the currentAppState passed to you,
-     * and perform all state updates on the nextAppState state which we define below
-     * and return at the end of the function. YOU SHOULD NOT MODIFY THE CURRENTSTATE.
-     * Modifying the currentAppState will mean the undraw function will not be able
-     * to undraw it later.
-     */
-    AppState nextAppState = *currentAppState;
-
-    // Copy the cue ball into the new state (without reusing the same pointer)
-    nextAppState.cue_ball = malloc(sizeof(ball_t));
-    *(nextAppState.cue_ball) = *(currentAppState->cue_ball);
-
-    // Copy over the other balls
-    for (int i = 0; i < 15; i++) {
-        nextAppState.balls[i] = malloc(sizeof(ball_t));
-        *(nextAppState.balls[i]) = *(currentAppState->balls[i]);
-    }
-
-    // Copy over the cue
-    nextAppState.cue = malloc(sizeof(cue_t));
-    *(nextAppState.cue) = *(currentAppState->cue);
-
+void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow) {
     // If nothing is moving
-    if (no_balls_moving(&nextAppState)) {
-        nextAppState.cue->alive = ENTITY_ALIVE;
+    if (no_balls_moving(state)) {
+        state->cue->alive = ENTITY_ALIVE;
         if (KEY_JUST_RELEASED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
-            fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(currentAppState->cue->dist_from_ball, MAX_CUE_DISTANCE));
-            fixed_t hit_angle = INT_TO_FIXED(360) - currentAppState->cue->angle;
+            fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(state->cue->dist_from_ball, MAX_CUE_DISTANCE));
+            fixed_t hit_angle = INT_TO_FIXED(360) - state->cue->angle;
 
             fixed_t vx = FIXED_MULT(strength, FIXED_COS(hit_angle));
             fixed_t vy = FIXED_MULT(strength, FIXED_SIN(hit_angle));
 
-            nextAppState.cue_ball->vx = vx;
-            nextAppState.cue_ball->vy = vy;
+            state->cue_ball->vx = vx;
+            state->cue_ball->vy = vy;
 
-            nextAppState.cue->dist_from_ball = 0;
-            nextAppState.cue->alive = ENTITY_DEAD;
-            nextAppState.turns++; // Increment turns counter
+            state->cue->dist_from_ball = 0;
+            state->cue->alive = ENTITY_DEAD;
+            state->turns++; // Increment turns counter
         } else if (KEY_DOWN(BUTTON_A, keysPressedNow)) {
-            if (currentAppState->cue->dist_from_ball < MAX_CUE_DISTANCE) {
-                nextAppState.cue->dist_from_ball += FIXED_ONE;
+            if (state->cue->dist_from_ball < MAX_CUE_DISTANCE) {
+                state->cue->dist_from_ball += FIXED_ONE;
             }
         } else if (KEY_DOWN(BUTTON_LEFT, keysPressedNow)) {
-            if (nextAppState.cue->angle <= 0) {
-                nextAppState.cue->angle += INT_TO_FIXED(360);
+            if (state->cue->angle <= 0) {
+                state->cue->angle += INT_TO_FIXED(360);
             }
-            nextAppState.cue->angle -= FIXED_ONE;
+            state->cue->angle -= FIXED_ONE;
         } else if (KEY_DOWN(BUTTON_RIGHT, keysPressedNow)) {
-            if (nextAppState.cue->angle >= INT_TO_FIXED(360)) {
-                nextAppState.cue->angle -= INT_TO_FIXED(360);
+            if (state->cue->angle >= INT_TO_FIXED(360)) {
+                state->cue->angle -= INT_TO_FIXED(360);
             }
-            nextAppState.cue->angle += FIXED_ONE;
+            state->cue->angle += FIXED_ONE;
         }
     } else {
         // Just calculate motion for all the balls
-        update_ball(nextAppState.cue_ball);
+        update_ball(state->cue_ball);
 
         for (int i = 0; i < 15; i++) {
-            update_ball(nextAppState.balls[i]);
+            update_ball(state->balls[i]);
         }
 
         // Check collision of all the balls
         // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
             // Skip balls that are in pockets
-            if (nextAppState.balls[i]->alive == ENTITY_DEAD) {
+            if (state->balls[i]->alive == ENTITY_DEAD) {
                 continue;
             }
 
             // Check to see if the ball is in a pocket
-            if (check_pocket_collision(nextAppState.balls[i])) {
-                nextAppState.balls[i]->alive = ENTITY_DEAD;
-                nextAppState.score++;
+            if (check_pocket_collision(state->balls[i])) {
+                state->balls[i]->alive = ENTITY_DEAD;
+                state->score++;
                 continue; // Don't check collision
             }
 
             // Check against the cue ball
-            if (check_collision(nextAppState.cue_ball, nextAppState.balls[i])) {
-                collide_static(nextAppState.cue_ball, nextAppState.balls[i]);
-                collide_dynamic(nextAppState.cue_ball, nextAppState.balls[i]);
+            if (check_collision(state->cue_ball, state->balls[i])) {
+                collide_static(state->cue_ball, state->balls[i]);
+                collide_dynamic(state->cue_ball, state->balls[i]);
             }
 
             // Check against otehr balls
             for (int j = 0; j < 15; j++) {
                 // Skip balls that are in pockets
-                if (nextAppState.balls[j]->alive == ENTITY_DEAD) {
+                if (state->balls[j]->alive == ENTITY_DEAD) {
                     continue;
                 }
 
@@ -347,14 +289,11 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
                 if (i == j)
                     continue;
                 
-                if (check_collision(nextAppState.balls[i], nextAppState.balls[j])) {
-                    collide_static(nextAppState.balls[i], nextAppState.balls[j]);
-                    collide_dynamic(nextAppState.balls[i], nextAppState.balls[j]);
+                if (check_collision(state->balls[i], state->balls[j])) {
+                    collide_static(state->balls[i], state->balls[j]);
+                    collide_dynamic(state->balls[i], state->balls[j]);
                 }
             }
         }
-
     }
-
-    return nextAppState;
 }

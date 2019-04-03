@@ -49,11 +49,9 @@ typedef struct {
 
 // This function can initialize an unused AppState struct.
 void initializeAppState(AppState *appState);
-// This function frees memory used by the AppState
-void cleanupAppState(AppState *appState);
 
 // This function will be used to process app frames.
-AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow);
+void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow);
 
 // If you have anything else you need accessible from outside the logic.c
 // file, you can add them here. You likely won't.

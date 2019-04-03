@@ -79,8 +79,8 @@ int main(void) {
 
     GBAState state = START;
 
-    // We store the "previous" and "current" states.
-    AppState currentAppState, nextAppState;
+    // We store the current state.
+    AppState appState;
 
     // We store the current and previous values of the button input.
     u32 previousButtons = BUTTONS;
@@ -110,11 +110,11 @@ int main(void) {
                 break;
             case APP_INIT:
                 // Initialize the app. Switch to the APP state.
-                initializeAppState(&currentAppState);
-                updateSprites(&currentAppState, obj_buffer);
+                initializeAppState(&appState);
+                updateSprites(&appState, obj_buffer);
 
                 // Draw the initial state of the app
-                fullDrawAppState(&currentAppState);
+                fullDrawAppState(&appState);
 
                 // 16 balls (obj) + 1 cue (affine obj)
                 oam_copy(oam_mem, obj_buffer, 16 + 4);
@@ -123,29 +123,23 @@ int main(void) {
                 break;
             case APP:
                 // Process the app for one frame, store the next state
-                nextAppState = processAppState(&currentAppState, previousButtons, currentButtons);
-                updateSprites(&nextAppState, obj_buffer);
+                processAppState(&appState, previousButtons, currentButtons);
+                updateSprites(&appState, obj_buffer);
 
                 // Wait for VBlank before we do any drawing.
                 waitForVBlank();
 
                 // Undraw the previous state
-                undrawAppState(&currentAppState);
+                undrawAppState(&appState);
 
                 // Draw the current state
-                drawAppState(&nextAppState);
+                drawAppState(&appState);
 
                 // 16 balls (obj) + 1 cue (affine obj)
                 oam_copy(oam_mem, obj_buffer, 16 + 4);
 
-                // Free the previous state
-                cleanupAppState(&currentAppState);
-
-                // Now set the current state as the next state for the next iter.
-                currentAppState = nextAppState;
-
                 // Check if the app is exiting. If it is, then go to the exit state.
-                if (nextAppState.gameOver) {
+                if (appState.gameOver) {
                     state = APP_EXIT;
                 }
 
