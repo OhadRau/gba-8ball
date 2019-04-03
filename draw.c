@@ -49,32 +49,49 @@ void drawAppState(AppState *state) {
 }
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
-    // buffer layout = cue ball, 1 .. 15, (AFFINE) cue stick
+    // buffer layout = cue ball, balls 1 .. 15, (AFFINE cue stick) cue stick
 
     // Update the position for the cue ball
     obj_set_pos(&buffer[0], FIXED_TO_INT(state->cue_ball->x), FIXED_TO_INT(state->cue_ball->y));
 
     // Update the positions for other balls
     for (int i = 0; i < 15; i++) {
-        obj_set_pos(&buffer[i + 1], FIXED_TO_INT(state->balls[i]->x), FIXED_TO_INT(state->balls[i]->y));
+        if (state->balls[i]->alive) {
+            // Unhide the ball, it's supposed to be on screen
+            obj_unhide(&buffer[i + 1]);
+            // And update its position
+            obj_set_pos(&buffer[i + 1], FIXED_TO_INT(state->balls[i]->x), FIXED_TO_INT(state->balls[i]->y));
+        } else {
+            // Hide the ball, it must be in a pocket
+            obj_hide(&buffer[i]);
+        }
     }
 
-    // Rotate the cue according to the angle
-    OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
-    
-    acue->pa =  FIXED_COS(state->cue->angle);
-    acue->pb = -FIXED_SIN(state->cue->angle);
-    acue->pc =  FIXED_SIN(state->cue->angle);
-    acue->pd =  FIXED_COS(state->cue->angle);
+    // If we want the cue on screen
+    if (state->cue->alive) {
+        // Unhide the cue
+        obj_aff_unhide(&buffer[16]);
 
-    // Now draw the cue as if its tip is anchored to the ball
-    // Math based on https://www.coranac.com/tonc/text/affobj.htm (11.3)
-    fixed_t tex_x = 70, tex_y = 32;
-    fixed_t cnt_x = 32, cnt_y = 32;
-    fixed_t x =
-        state->cue_ball->x - cnt_x - (FIXED_COS(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_SIN(state->cue->angle) * (tex_y - cnt_y));
-    fixed_t y =
-        state->cue_ball->y - cnt_y - (-FIXED_SIN(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_COS(state->cue->angle) * (tex_y - cnt_y));
+        // Rotate the cue according to the angle
+        OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
+        
+        acue->pa =  FIXED_COS(state->cue->angle);
+        acue->pb = -FIXED_SIN(state->cue->angle);
+        acue->pc =  FIXED_SIN(state->cue->angle);
+        acue->pd =  FIXED_COS(state->cue->angle);
 
-    obj_set_pos(&buffer[16], FIXED_TO_INT(x) - 28, FIXED_TO_INT(y) - 28);
+        // Now draw the cue as if its tip is anchored to the ball
+        // Math based on https://www.coranac.com/tonc/text/affobj.htm (11.3)
+        int tex_x = FIXED_TO_INT(state->cue->dist_from_ball) + 70, tex_y = 32;
+        int cnt_x = 32, cnt_y = 32;
+        fixed_t x =
+            state->cue_ball->x - cnt_x - (FIXED_COS(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_SIN(state->cue->angle) * (tex_y - cnt_y));
+        fixed_t y =
+            state->cue_ball->y - cnt_y - (-FIXED_SIN(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_COS(state->cue->angle) * (tex_y - cnt_y));
+
+        obj_set_pos(&buffer[16], FIXED_TO_INT(x) - 28, FIXED_TO_INT(y) - 28);
+    } else {
+        // Hide the cue, the player doesn't want it on screen
+        obj_aff_hide(&buffer[16]);
+    }
 }

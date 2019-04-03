@@ -14,17 +14,25 @@
 
 typedef int fixed_t;
 
+#define ENTITY_ALIVE 1
+#define ENTITY_DEAD 0
+
+#define MAX_CUE_STRENGTH INT_TO_FIXED(6)
+#define MAX_CUE_DISTANCE INT_TO_FIXED(40)
+
 typedef struct {
     u16 color;
     fixed_t radius;
     fixed_t x, y;
     fixed_t vx, vy;
+    int alive;
 } ball_t;
 
 typedef struct {
     u16 color;
     fixed_t angle;
     fixed_t dist_from_ball;
+    int alive;
 } cue_t;
 
 typedef struct {

@@ -1,5 +1,6 @@
 #include "logic.h"
 #include <stdlib.h>
+#include "genlut/lut.h"
 
 #define FRICTION 8
 
@@ -46,15 +47,21 @@ static void update_ball(ball_t *ball) {
     ball->y += ball->vy;
 
     // Remember, velocities are fixed point
-    if (abs(ball->vx) < 4*FRICTION) {
+    if (abs(ball->vx) < 2*FRICTION) {
         ball->vx = 0;
     }
-    if (abs(ball->vy) < 4*FRICTION) {
+    if (abs(ball->vy) < 2*FRICTION) {
         ball->vy = 0;
     } else {
         // vx, vy decay from friction
+        fixed_t oldvx = ball->vx, oldvy = ball->vy;
         ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
         ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
+        // If friction calculation didn't work, just stop the balls 
+        if (ball->vx >= oldvx && ball->vy >= oldvy) {
+            ball->vx = 0;
+            ball->vy = 0;
+        }
     }
 }
 
@@ -94,6 +101,7 @@ void initializeAppState(AppState *appState) {
     cue->color = YELLOW;
     cue->angle = INT_TO_FIXED(0);
     cue->dist_from_ball = INT_TO_FIXED(0);
+    cue->alive = ENTITY_ALIVE;
     appState->cue = cue;
 
     ball_t *cue_ball = malloc(sizeof(ball_t));
@@ -102,8 +110,9 @@ void initializeAppState(AppState *appState) {
     cue_ball->x = INT_TO_FIXED(50);
     cue_ball->y = INT_TO_FIXED(50);
     // Velocities past 6.0 don't work well (overflow?)... Wonder if we can fix this?
-    cue_ball->vx = INT_TO_FIXED(3);
+    cue_ball->vx = INT_TO_FIXED(0);
     cue_ball->vy = INT_TO_FIXED(0);
+    cue_ball->alive = ENTITY_ALIVE;
     appState->cue_ball = cue_ball;
 
     // Positions to place balls at to form a triangle:
@@ -132,6 +141,7 @@ void initializeAppState(AppState *appState) {
         appState->balls[i]->y = INT_TO_FIXED(55 + ys[i]);
         appState->balls[i]->vx = INT_TO_FIXED(0);
         appState->balls[i]->vy = INT_TO_FIXED(0);
+        appState->balls[i]->alive = ENTITY_ALIVE;
     }
 }
 
@@ -201,7 +211,32 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 
     // If nothing is moving
     if (nextAppState.cue_ball->vx == 0 && nextAppState.cue_ball->vy == 0) {
-        if (KEY_DOWN(ANY_KEY, keysPressedNow)) {
+        nextAppState.cue->alive = ENTITY_ALIVE;
+        if (KEY_JUST_RELEASED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
+            fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(currentAppState->cue->dist_from_ball, MAX_CUE_DISTANCE));
+            fixed_t hit_angle = INT_TO_FIXED(360) - currentAppState->cue->angle;
+
+            fixed_t vx = FIXED_MULT(strength, FIXED_COS(hit_angle));
+            fixed_t vy = FIXED_MULT(strength, FIXED_SIN(hit_angle));
+
+            nextAppState.cue_ball->vx = vx;
+            nextAppState.cue_ball->vy = vy;
+
+            nextAppState.cue->dist_from_ball = 0;
+            nextAppState.cue->alive = ENTITY_DEAD;
+        } else if (KEY_DOWN(BUTTON_A, keysPressedNow)) {
+            if (currentAppState->cue->dist_from_ball < MAX_CUE_DISTANCE) {
+                nextAppState.cue->dist_from_ball += FIXED_ONE;
+            }
+        } else if (KEY_DOWN(BUTTON_LEFT, keysPressedNow)) {
+            if (nextAppState.cue->angle <= 0) {
+                nextAppState.cue->angle += INT_TO_FIXED(360);
+            }
+            nextAppState.cue->angle -= FIXED_ONE;
+        } else if (KEY_DOWN(BUTTON_RIGHT, keysPressedNow)) {
+            if (nextAppState.cue->angle >= INT_TO_FIXED(360)) {
+                nextAppState.cue->angle -= INT_TO_FIXED(360);
+            }
             nextAppState.cue->angle += FIXED_ONE;
         }
     } else {
@@ -213,9 +248,6 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         }
 
         // Check collision of all the balls
-        UNUSED(collide);
-        UNUSED(check_collision);
-
         // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
             if (check_collision(nextAppState.cue_ball, nextAppState.balls[i])) {

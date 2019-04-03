@@ -56,16 +56,22 @@ static char *print_lut(FILE *file, char *name, fixed_t start, fixed_t precision,
 
 int main(int argc, char **argv) {
 
-  FILE *file = fopen("lut.h", "w");
-  fprintf(file, "#ifndef LUT_H\n#define LUT_H\n");
-  fprintf(file, "#include \"../logic.h\"\n");
-  //fprintf(file, "#define FIXED_SQRT_POS(f) ((f) <= (1000 * FIXED_ONE/4) ? fixed_sqrt_table[(f)] : fixed_sqrt_table[(f)%%(1000 * FIXED_ONE/4)])\n");
-  //fprintf(file, "#define FIXED_SQRT(f) ((f) < 0 ? FIXED_SQRT_POS(-(f)) : FIXED_SQRT_POS(f))\n");
-  fprintf(file, "#define FIXED_SIN(f) (FIXED_TO_INT(f) <= 360 ? fixed_sin_table[FIXED_TO_INT(f)] : fixed_sin_table[FIXED_TO_INT(f)%%360])\n");
-  fprintf(file, "#define FIXED_COS(f) (FIXED_TO_INT(f) <= 360 ? fixed_cos_table[FIXED_TO_INT(f)] : fixed_cos_table[FIXED_TO_INT(f)%%360])\n");
+  FILE *header = fopen("lut.h", "w");
+  fprintf(header, "#ifndef LUT_H\n#define LUT_H\n");
+  fprintf(header, "#include \"../logic.h\"\n");
+  //fprintf(header, "#define FIXED_SQRT_POS(f) ((f) <= (1000 * FIXED_ONE/4) ? fixed_sqrt_table[(f)] : fixed_sqrt_table[(f)%%(1000 * FIXED_ONE/4)])\n");
+  //fprintf(header, "#define FIXED_SQRT(f) ((f) < 0 ? FIXED_SQRT_POS(-(f)) : FIXED_SQRT_POS(f))\n");
+  fprintf(header, "#define FIXED_SIN(f) (FIXED_TO_INT(f) <= 360 ? fixed_sin_table[FIXED_TO_INT(f)] : fixed_sin_table[FIXED_TO_INT(f)%%360])\n");
+  fprintf(header, "#define FIXED_COS(f) (FIXED_TO_INT(f) <= 360 ? fixed_cos_table[FIXED_TO_INT(f)] : fixed_cos_table[FIXED_TO_INT(f)%%360])\n");
   //print_lut(file, "fixed_sqrt_table", 0, 4, INT_TO_FIXED(200), &sqrt); // precision = 4/FIXED_ONE
+  fprintf(header, "extern fixed_t fixed_sin_table[];\n");
+  fprintf(header, "extern fixed_t fixed_cos_table[];\n");
+  fprintf(header, "#endif");
+  fclose(header);
+
+  FILE *file = fopen("lut.c", "w");
+  fprintf(header, "#include \"../logic.h\"\n");
   print_lut(file, "fixed_sin_table", 0, FIXED_ONE, INT_TO_FIXED(360), &sin);
   print_lut(file, "fixed_cos_table", 0, FIXED_ONE, INT_TO_FIXED(360), &cos);
-  fprintf(file, "#endif");
   fclose(file);
 }

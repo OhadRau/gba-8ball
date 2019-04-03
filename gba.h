@@ -73,6 +73,7 @@ extern volatile unsigned short *videoBuffer;
 // input (oldButtons) but is pressed in the current input. Use the KEY_DOWN
 // macro to check if the button was pressed in the inputs.
 #define KEY_JUST_PRESSED(key, buttons, oldbuttons) (KEY_DOWN(key, buttons) && !KEY_DOWN(key, oldbuttons))
+#define KEY_JUST_RELEASED(key, buttons, oldbuttons) (!KEY_DOWN(key, buttons) && KEY_DOWN(key, oldbuttons))
 
 // ---------------------------------------------------------------------------
 //                       DMA
@@ -260,7 +261,9 @@ void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, u32 count);
 
 void obj_set_pos(OBJ_ATTR *obj, int x, int y);
 void obj_hide(OBJ_ATTR *obj);
+void obj_aff_hide(OBJ_ATTR *obj);
 void obj_unhide(OBJ_ATTR *obj);
+void obj_aff_unhide(OBJ_ATTR *obj);
 
 /** Contains the pixels of each character from a 6x8 font */
 // This is in the font.c file. You can replace the font if you want.

@@ -138,6 +138,16 @@ inline void obj_hide(OBJ_ATTR *obj) {
     obj->attr0 |= ATTR0_HIDE;
 }
 
+inline void obj_aff_hide(OBJ_ATTR *obj) {
+    obj->attr0 &= ~ATTR0_AFF;
+    obj->attr0 |= ATTR0_HIDE;
+}
+
 inline void obj_unhide(OBJ_ATTR *obj) {
+    obj->attr0 &= ~ATTR0_HIDE;
+}
+
+inline void obj_aff_unhide(OBJ_ATTR *obj) {
+    obj->attr0 |= ATTR0_AFF;
     obj->attr0 &= ~ATTR0_HIDE;
 }
