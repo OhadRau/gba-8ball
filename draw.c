@@ -5,6 +5,8 @@
 // Example for the provided garbage image:
 #include "images/garbage.h"
 
+#include "genlut/lut.h"
+
 #include <stdio.h>
 
 #define MIN(x, y) ((x < y) ? x : y)
@@ -46,8 +48,6 @@ void drawAppState(AppState *state) {
     drawString(0, 0, buffer, BLUE);
 }
 
-#include "genlut/lut.h"
-
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
     // buffer layout = cue ball, 1 .. 15, (AFFINE) cue stick
 
@@ -59,13 +59,22 @@ void updateSprites(AppState *state, OBJ_ATTR *buffer) {
         obj_set_pos(&buffer[i + 1], FIXED_TO_INT(state->balls[i]->x), FIXED_TO_INT(state->balls[i]->y));
     }
 
-    // Draw the cue at the cue ball's position
-    obj_set_pos(&buffer[16], FIXED_TO_INT(state->cue_ball->x), FIXED_TO_INT(state->cue_ball->y));
-
+    // Rotate the cue according to the angle
     OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
     
     acue->pa =  FIXED_COS(state->cue->angle);
     acue->pb = -FIXED_SIN(state->cue->angle);
     acue->pc =  FIXED_SIN(state->cue->angle);
     acue->pd =  FIXED_COS(state->cue->angle);
+
+    // Now draw the cue as if its tip is anchored to the ball
+    // Math based on https://www.coranac.com/tonc/text/affobj.htm (11.3)
+    fixed_t tex_x = 70, tex_y = 32;
+    fixed_t cnt_x = 32, cnt_y = 32;
+    fixed_t x =
+        state->cue_ball->x - cnt_x - (FIXED_COS(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_SIN(state->cue->angle) * (tex_y - cnt_y));
+    fixed_t y =
+        state->cue_ball->y - cnt_y - (-FIXED_SIN(state->cue->angle) * (tex_x - cnt_x)) + (FIXED_COS(state->cue->angle) * (tex_y - cnt_y));
+
+    obj_set_pos(&buffer[16], FIXED_TO_INT(x) - 28, FIXED_TO_INT(y) - 28);
 }

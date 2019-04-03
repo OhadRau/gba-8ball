@@ -6,7 +6,6 @@
 // image:
 // #include "images/garbage.h"
 #include "sprites/sprites.h"
-#include "genlut/lut.h"
 
 #include <stdio.h>
 #include <stdlib.h>
