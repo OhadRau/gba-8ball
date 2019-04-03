@@ -76,7 +76,23 @@ static void update_ball(ball_t *ball) {
     }
 }
 
-static void collide(ball_t *a, ball_t *b) {
+// Basic collision resolution (get balls unstuck)
+static void collide_static(ball_t *a, ball_t *b) {
+    // Delta (distance) between balls
+    fixed_t dx = a->x - b->x;
+    fixed_t dy = a->y - b->y;
+    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t overlap = d - a->radius - b->radius;
+
+    a->x -= FIXED_MULT(overlap, FIXED_DIV(dx, d)) >> 1;
+    a->y -= FIXED_MULT(overlap, FIXED_DIV(dy, d)) >> 1;
+
+    b->x += FIXED_MULT(overlap, FIXED_DIV(dx, d)) >> 1;
+    b->y += FIXED_MULT(overlap, FIXED_DIV(dy, d)) >> 1;
+}
+
+// Dynamic collision resolution (bounce balls)
+static void collide_dynamic(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
@@ -259,13 +275,15 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
             if (check_collision(nextAppState.cue_ball, nextAppState.balls[i])) {
-                collide(nextAppState.cue_ball, nextAppState.balls[i]);
+                collide_static(nextAppState.cue_ball, nextAppState.balls[i]);
+                collide_dynamic(nextAppState.cue_ball, nextAppState.balls[i]);
             }
             for (int j = 0; j < 15; j++) {
                 if (i == j)
                     break;
                 if (check_collision(nextAppState.balls[i], nextAppState.balls[j])) {
-                    collide(nextAppState.balls[i], nextAppState.balls[j]);
+                    collide_static(nextAppState.balls[i], nextAppState.balls[j]);
+                    collide_dynamic(nextAppState.balls[i], nextAppState.balls[j]);
                 }
             }
         }
