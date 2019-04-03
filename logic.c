@@ -83,7 +83,6 @@ static void update_ball(ball_t *ball) {
     }
 
     // Now reflect if we hit a wall
-    
     if (ball->x - ball->radius < INT_TO_FIXED(20)) { // Hit left wall
         ball->x = INT_TO_FIXED(20) + ball->radius + 1;
         ball->vx = -ball->vx;
@@ -177,8 +176,8 @@ void initializeAppState(AppState *appState) {
     ball_t *cue_ball = malloc(sizeof(ball_t));
     cue_ball->color = WHITE;
     cue_ball->radius = INT_TO_FIXED(5);
-    cue_ball->x = INT_TO_FIXED(50);
-    cue_ball->y = INT_TO_FIXED(50);
+    cue_ball->x = INT_TO_FIXED(WIDTH >> 3);
+    cue_ball->y = INT_TO_FIXED((HEIGHT >> 1) - 5);
     // Velocities past 6.0 don't work well (overflow?)... Wonder if we can fix this?
     cue_ball->vx = INT_TO_FIXED(0);
     cue_ball->vy = INT_TO_FIXED(0);
@@ -207,12 +206,23 @@ void initializeAppState(AppState *appState) {
         appState->balls[i] = malloc(sizeof(ball_t));
         appState->balls[i]->color = BLUE;
         appState->balls[i]->radius = INT_TO_FIXED(5);
-        appState->balls[i]->x = INT_TO_FIXED(120 + xs[i]);
-        appState->balls[i]->y = INT_TO_FIXED(55 + ys[i]);
+        appState->balls[i]->x = INT_TO_FIXED((WIDTH >> 1) + (WIDTH >> 3) + xs[i]);
+        appState->balls[i]->y = INT_TO_FIXED((HEIGHT >> 1) - 25 + ys[i]);
         appState->balls[i]->vx = INT_TO_FIXED(0);
         appState->balls[i]->vy = INT_TO_FIXED(0);
         appState->balls[i]->alive = ENTITY_ALIVE;
     }
+}
+
+// Free all dynamically allocated memory from the app state
+void cleanupAppState(AppState *state) {
+    free(state->cue_ball);
+
+    for (int i = 0; i < 15; i++) {
+        free(state->balls[i]);
+    }
+
+    free(state->cue);
 }
 
 // This function processes your current app state and returns the new (i.e. next)

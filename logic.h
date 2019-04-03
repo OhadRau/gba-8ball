@@ -50,6 +50,9 @@ typedef struct {
 // This function can initialize an unused AppState struct.
 void initializeAppState(AppState *appState);
 
+// Free all dynamically allocated memory from the app state
+void cleanupAppState(AppState *state);
+
 // This function will be used to process app frames.
 void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow);
 

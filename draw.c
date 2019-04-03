@@ -40,8 +40,8 @@ void fullDrawTitleScreen(void) {
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
     UNUSED(state);
-    drawRectDMA(2, 2, 50, 10, WOOD_COLOR);
-    drawRectDMA(WIDTH - 60, 2, 50, 10, WOOD_COLOR);
+    drawRectDMA(2, 2, 60, 10, WOOD_COLOR);
+    drawRectDMA(WIDTH - 60, 2, 60, 10, WOOD_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.

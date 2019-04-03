@@ -66,6 +66,13 @@ void init_objects(void) {
     acue->pd = FIXED_ONE;
 }
 
+void hide_objects(void) {
+    for (int i = 0; i < 16; i++) {
+        obj_hide(&obj_buffer[i]);
+    }
+    obj_aff_hide(&obj_buffer[16]);
+}
+
 int main(void) {
     // Copy tiles & palettes for sprites into object memory
     memcpy(&tile_mem[5][0], sprites, SPRITES_SIZE);
@@ -74,8 +81,6 @@ int main(void) {
     oam_init(obj_buffer, 128);
 
     REG_DISPCNT = MODE3 | BG2_ENABLE | SPRITES_ENABLE | SPRITES_DIMENSION_TYPE;
-
-    init_objects();
 
     GBAState state = START;
 
@@ -89,6 +94,17 @@ int main(void) {
     while (1) {
         // Load the current state of the buttons
         currentButtons = BUTTONS;
+
+        if (KEY_JUST_PRESSED(BUTTON_SELECT, currentButtons, previousButtons)) {
+            // Free all used memory (resets game state)
+            cleanupAppState(&appState);
+            // Hide all objects in the buffer
+            hide_objects();
+            // Apply the object buffer
+            oam_copy(oam_mem, obj_buffer, 16 + 4);
+            // Set the game to the start state
+            state = START;
+        }
 
         // TA-TODO: Manipulate the state machine below as needed.
         switch(state) {
@@ -109,6 +125,9 @@ int main(void) {
                 }
                 break;
             case APP_INIT:
+                // Initialize the sprites
+                init_objects();
+
                 // Initialize the app. Switch to the APP state.
                 initializeAppState(&appState);
                 updateSprites(&appState, obj_buffer);
