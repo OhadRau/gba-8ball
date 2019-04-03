@@ -43,7 +43,8 @@ static char *print_lut(FILE *file, char *name, fixed_t start, fixed_t precision,
     int part = i % FIXED_ONE;
     double f = whole + ((double) part / (double) FIXED_ONE);
 
-    double r = func(f);
+    // Doesn't matter rn but don't want this if it's not a trig function getting generated
+    double r = func(f * M_PI / 180.0f);
 
     int result = (int) ceil(r * (double) FIXED_ONE);
 
@@ -56,6 +57,7 @@ static char *print_lut(FILE *file, char *name, fixed_t start, fixed_t precision,
 int main(int argc, char **argv) {
 
   FILE *file = fopen("lut.h", "w");
+  fprintf(file, "#ifndef LUT_H\n#define LUT_H\n");
   fprintf(file, "#include \"../logic.h\"\n");
   //fprintf(file, "#define FIXED_SQRT_POS(f) ((f) <= (1000 * FIXED_ONE/4) ? fixed_sqrt_table[(f)] : fixed_sqrt_table[(f)%%(1000 * FIXED_ONE/4)])\n");
   //fprintf(file, "#define FIXED_SQRT(f) ((f) < 0 ? FIXED_SQRT_POS(-(f)) : FIXED_SQRT_POS(f))\n");
@@ -64,5 +66,6 @@ int main(int argc, char **argv) {
   //print_lut(file, "fixed_sqrt_table", 0, 4, INT_TO_FIXED(200), &sqrt); // precision = 4/FIXED_ONE
   print_lut(file, "fixed_sin_table", 0, FIXED_ONE, INT_TO_FIXED(360), &sin);
   print_lut(file, "fixed_cos_table", 0, FIXED_ONE, INT_TO_FIXED(360), &cos);
+  fprintf(file, "#endif");
   fclose(file);
 }

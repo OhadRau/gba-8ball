@@ -1,5 +1,4 @@
 #include "logic.h"
-#include "genlut/lut.h"
 #include <stdlib.h>
 
 #define FRICTION 8
