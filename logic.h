@@ -38,6 +38,7 @@ typedef struct {
 typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
+    int score;
 
     cue_t *cue;
 

@@ -42,6 +42,31 @@ static int check_collision(ball_t *a, ball_t *b) {
     return d <= max_dist;
 }
 
+static int check_pocket_collision(ball_t *ball) {
+    if (ball->y <= INT_TO_FIXED(20 + 8)) {
+        if (ball->x <= INT_TO_FIXED(20 + 8)) {
+            return 1;
+        }
+        if (ball->x >= INT_TO_FIXED((WIDTH >> 1) - 8) && ball->x <= INT_TO_FIXED((WIDTH >> 1) + 8)) {
+            return 1;
+        }
+        if (ball->x >= INT_TO_FIXED(WIDTH - 20 - 8)) {
+            return 1;
+        }
+    } else if (ball->y >= INT_TO_FIXED(HEIGHT - 20 - 8)) {
+        if (ball->x <= INT_TO_FIXED(20 + 8)) {
+            return 1;
+        }
+        if (ball->x >= INT_TO_FIXED((WIDTH >> 1) - 8) && ball->x <= INT_TO_FIXED((WIDTH >> 1) + 8)) {
+            return 1;
+        }
+        if (ball->x >= INT_TO_FIXED(WIDTH - 20 - 8)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void update_ball(ball_t *ball) {
     ball->x += ball->vx;
     ball->y += ball->vy;
@@ -81,6 +106,10 @@ static int no_balls_moving(AppState *state) {
         return 0;
     }
     for (int i = 0; i < 15; i++) {
+        // Doesn't matter if it's moving if the ball is in a pocket
+        if (state->balls[i]->alive == ENTITY_DEAD) {
+            continue;
+        }
         if (state->balls[i]->vx != 0 || state->balls[i]->vy != 0) {
             return 0;
         }
@@ -135,6 +164,7 @@ static void collide_dynamic(ball_t *a, ball_t *b) {
 
 void initializeAppState(AppState *appState) {
     appState->gameOver = 0;
+    appState->score = 0;
 
     cue_t *cue = malloc(sizeof(cue_t));
     cue->color = YELLOW;
@@ -286,13 +316,35 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         // Check collision of all the balls
         // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
+            // Skip balls that are in pockets
+            if (nextAppState.balls[i]->alive == ENTITY_DEAD) {
+                continue;
+            }
+
+            // Check to see if the ball is in a pocket
+            if (check_pocket_collision(nextAppState.balls[i])) {
+                nextAppState.balls[i]->alive = ENTITY_DEAD;
+                nextAppState.score++;
+                continue; // Don't check collision
+            }
+
+            // Check against the cue ball
             if (check_collision(nextAppState.cue_ball, nextAppState.balls[i])) {
                 collide_static(nextAppState.cue_ball, nextAppState.balls[i]);
                 collide_dynamic(nextAppState.cue_ball, nextAppState.balls[i]);
             }
+
+            // Check against otehr balls
             for (int j = 0; j < 15; j++) {
+                // Skip balls that are in pockets
+                if (nextAppState.balls[j]->alive == ENTITY_DEAD) {
+                    continue;
+                }
+
+                // Don't compare to itself
                 if (i == j)
-                    break;
+                    continue;
+                
                 if (check_collision(nextAppState.balls[i], nextAppState.balls[j])) {
                     collide_static(nextAppState.balls[i], nextAppState.balls[j]);
                     collide_dynamic(nextAppState.balls[i], nextAppState.balls[j]);

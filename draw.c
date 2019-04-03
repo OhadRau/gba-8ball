@@ -10,25 +10,19 @@
 #define MIN(x, y) ((x < y) ? x : y)
 #define MAX(x, y) ((x < y) ? y : x)
 
-#define TABLE_COLOR COLOR(0, 12, 5)
-#define WOOD_COLOR COLOR(6, 2, 0)
+//#define TABLE_COLOR COLOR(0, 12, 5)
+//#define WOOD_COLOR COLOR(6, 2, 0)
+#define TABLE_COLOR 0x15c6
+#define WOOD_COLOR 0x0066
 
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
-    /*
-    // Draw table green
-    fillScreenDMA(TABLE_COLOR);
+    char buffer[32];
+    sprintf(buffer, "Score: %d", state->score);
+    drawString(2, 2, buffer, TABLE_COLOR);
 
-    // Draw table wood
-    drawRectDMA(0, 0, WIDTH, 20, WOOD_COLOR);           // Top
-    drawRectDMA(0, 0, 20, HEIGHT, WOOD_COLOR);          // Left
-    drawRectDMA(0, HEIGHT - 20, WIDTH, 20, WOOD_COLOR); // Bottom
-    drawRectDMA(WIDTH - 20, 0, 20, HEIGHT, WOOD_COLOR); // Right
-    */
     drawFullScreenImageDMA((u16 *) table);
-
-    UNUSED(state);
 }
 
 // Draw the title screen
@@ -42,21 +36,17 @@ void fullDrawTitleScreen(void) {
 // This function will be used to undraw (i.e. erase) things that might
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
-    UNUSED(state);
-
-    //drawRectDMA(0, 0, 250, 25, TABLE_COLOR);
+    char buffer[32];
+    sprintf(buffer, "Score: %d", state->score);
+    drawString(2, 2, buffer, WOOD_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state) {
-    UNUSED(state);
-
-    /*
-    char buffer[128];
-    sprintf(buffer, "cue theta = %d", FIXED_TO_INT(state->cue->angle));
-    drawString(0, 0, buffer, BLUE);
-    */
+    char buffer[32];
+    sprintf(buffer, "Score: %d", state->score);
+    drawString(2, 2, buffer, TABLE_COLOR);
 }
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
@@ -67,14 +57,14 @@ void updateSprites(AppState *state, OBJ_ATTR *buffer) {
 
     // Update the positions for other balls
     for (int i = 0; i < 15; i++) {
-        if (state->balls[i]->alive) {
+        if (state->balls[i]->alive == ENTITY_ALIVE) {
             // Unhide the ball, it's supposed to be on screen
             obj_unhide(&buffer[i + 1]);
             // And update its position
             obj_set_pos(&buffer[i + 1], FIXED_TO_INT(state->balls[i]->x), FIXED_TO_INT(state->balls[i]->y));
         } else {
             // Hide the ball, it must be in a pocket
-            obj_hide(&buffer[i]);
+            obj_hide(&buffer[i + 1]);
         }
     }
 
