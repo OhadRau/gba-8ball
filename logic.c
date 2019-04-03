@@ -165,6 +165,7 @@ static void collide_dynamic(ball_t *a, ball_t *b) {
 void initializeAppState(AppState *appState) {
     appState->gameOver = 0;
     appState->score = 0;
+    appState->turns = 0;
 
     cue_t *cue = malloc(sizeof(cue_t));
     cue->color = YELLOW;
@@ -290,6 +291,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 
             nextAppState.cue->dist_from_ball = 0;
             nextAppState.cue->alive = ENTITY_DEAD;
+            nextAppState.turns++; // Increment turns counter
         } else if (KEY_DOWN(BUTTON_A, keysPressedNow)) {
             if (currentAppState->cue->dist_from_ball < MAX_CUE_DISTANCE) {
                 nextAppState.cue->dist_from_ball += FIXED_ONE;

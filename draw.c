@@ -22,6 +22,9 @@ void fullDrawAppState(AppState *state) {
     sprintf(buffer, "Score: %d", state->score);
     drawString(2, 2, buffer, TABLE_COLOR);
 
+    sprintf(buffer, "Turns: %d", state->turns);
+    drawString(WIDTH - 60, 2, buffer, TABLE_COLOR);
+
     drawFullScreenImageDMA((u16 *) table);
 }
 
@@ -36,9 +39,9 @@ void fullDrawTitleScreen(void) {
 // This function will be used to undraw (i.e. erase) things that might
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
-    char buffer[32];
-    sprintf(buffer, "Score: %d", state->score);
-    drawString(2, 2, buffer, WOOD_COLOR);
+    UNUSED(state);
+    drawRectDMA(2, 2, 50, 10, WOOD_COLOR);
+    drawRectDMA(WIDTH - 60, 2, 50, 10, WOOD_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -47,6 +50,9 @@ void drawAppState(AppState *state) {
     char buffer[32];
     sprintf(buffer, "Score: %d", state->score);
     drawString(2, 2, buffer, TABLE_COLOR);
+
+    sprintf(buffer, "Turns: %d", state->turns);
+    drawString(WIDTH - 60, 2, buffer, TABLE_COLOR);
 }
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {
