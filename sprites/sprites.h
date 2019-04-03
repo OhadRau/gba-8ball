@@ -1,7 +1,7 @@
 /*
  * Exported with nin10kit v1.7
  * Invocation command was nin10kit --mode=sprites --bpp=4 --for_bitmap --transparent=FFFFFF sprites ./cue_ball.png ./cue.png ./eight_ball.png ./eleven_ball.png ./fifteen_ball.png ./five_ball.png ./four_ball.png ./fourteen_ball.png ./nine_ball.png ./one_ball.png ./seven_ball.png ./six_ball.png ./ten_ball.png ./thirteen_ball.png ./three_ball.png ./twelve_ball.png ./two_ball.png 
- * Time-stamp: Wednesday 04/03/2019, 00:03:43
+ * Time-stamp: Wednesday 04/03/2019, 17:12:14
  * 
  * Image Information
  * -----------------

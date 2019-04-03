@@ -22,7 +22,7 @@ typedef enum {
     APP_EXIT_NODRAW,
 } GBAState;
 
-#define INIT_SPRITE(LOCATION, NAME) \
+#define INIT_BALL(LOCATION, NAME) \
     (LOCATION) = (OBJ_ATTR) { \
         .attr0 = (s16) (ATTR0_Y(0) | ATTR0_REG | ATTR0_BLEND | ATTR0_4BPP | NAME##_BALL_SPRITE_SHAPE), \
         .attr1 = (s16) (ATTR1_X(0) | NAME##_BALL_SPRITE_SIZE), \
@@ -32,22 +32,22 @@ typedef enum {
 void init_objects(void) {
     OBJ_ATTR *oballs = &obj_buffer[0];
 
-    INIT_SPRITE(oballs[0], CUE); // AFF0
-    INIT_SPRITE(oballs[1], ONE);
-    INIT_SPRITE(oballs[2], TWO);
-    INIT_SPRITE(oballs[3], THREE);
-    INIT_SPRITE(oballs[4], FOUR); // AFF1
-    INIT_SPRITE(oballs[5], FIVE);
-    INIT_SPRITE(oballs[6], SIX);
-    INIT_SPRITE(oballs[7], SEVEN);
-    INIT_SPRITE(oballs[8], EIGHT); // AFF2
-    INIT_SPRITE(oballs[9], NINE);
-    INIT_SPRITE(oballs[10], TEN);
-    INIT_SPRITE(oballs[11], ELEVEN);
-    INIT_SPRITE(oballs[12], TWELVE); // AFF3
-    INIT_SPRITE(oballs[13], THIRTEEN);
-    INIT_SPRITE(oballs[14], FOURTEEN);
-    INIT_SPRITE(oballs[15], FIFTEEN);
+    INIT_BALL(oballs[0], CUE); // AFF0
+    INIT_BALL(oballs[1], ONE);
+    INIT_BALL(oballs[2], TWO);
+    INIT_BALL(oballs[3], THREE);
+    INIT_BALL(oballs[4], FOUR); // AFF1
+    INIT_BALL(oballs[5], FIVE);
+    INIT_BALL(oballs[6], SIX);
+    INIT_BALL(oballs[7], SEVEN);
+    INIT_BALL(oballs[8], EIGHT); // AFF2
+    INIT_BALL(oballs[9], NINE);
+    INIT_BALL(oballs[10], TEN);
+    INIT_BALL(oballs[11], ELEVEN);
+    INIT_BALL(oballs[12], TWELVE); // AFF3
+    INIT_BALL(oballs[13], THIRTEEN);
+    INIT_BALL(oballs[14], FOURTEEN);
+    INIT_BALL(oballs[15], FIFTEEN);
 
     // Init cue *affine* sprite
     OBJ_ATTR *ocue = (OBJ_ATTR *) &obj_buffer[16]; // AFF4
@@ -57,12 +57,9 @@ void init_objects(void) {
         .attr2 = (ATTR2_ID(CUE_ID) | ATTR2_PALBANK(CUE_PALETTE_ID))
     };
 
-    // Show the cue ball & 8 ball
-    obj_unhide(&oballs[0]);
-    obj_unhide(&oballs[8]);
-
     OBJ_AFFINE *acue = (OBJ_AFFINE *) &obj_aff_buffer[4];
     
+    // Set transformation matrix to identity matrix
     acue->pa = FIXED_ONE;
     acue->pb = 0;
     acue->pc = 0;

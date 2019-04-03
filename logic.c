@@ -129,19 +129,19 @@ void initializeAppState(AppState *appState) {
     // Positions to place balls at to form a triangle:
     // (10 pixels per ball, 5 columns + 4 inner columns, 5 rows)
     int xs[] = {
-        20,
-        15, 25,
-        10, 20, 30,
-        05, 15, 25, 35,
-        00, 10, 20, 30, 40
-    };
-
-    int ys[] = {
         0,
         10, 10,
         20, 20, 20,
         30, 30, 30, 30,
         40, 40, 40, 40, 40
+    };
+
+    int ys[] = {
+        20,
+        15, 25,
+        10, 20, 30,
+        05, 15, 25, 35,
+        00, 10, 20, 30, 40
     };
 
     for (int i = 0; i < 15; i++) {
