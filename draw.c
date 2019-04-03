@@ -12,19 +12,27 @@
 #define MIN(x, y) ((x < y) ? x : y)
 #define MAX(x, y) ((x < y) ? y : x)
 
-#define CLEAR_COLOR COLOR(0, 12, 5)
+#define TABLE_COLOR COLOR(0, 12, 5)
+#define WOOD_COLOR COLOR(6, 2, 0)
 
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
-    fillScreenDMA(CLEAR_COLOR);
+    // Draw table green
+    fillScreenDMA(TABLE_COLOR);
+    
+    // Draw table wood
+    drawRectDMA(0, 0, WIDTH, 20, WOOD_COLOR);           // Top
+    drawRectDMA(0, 0, 20, HEIGHT, WOOD_COLOR);          // Left
+    drawRectDMA(0, HEIGHT - 20, WIDTH, 20, WOOD_COLOR); // Bottom
+    drawRectDMA(WIDTH - 20, 0, 20, HEIGHT, WOOD_COLOR); // Right
 
     UNUSED(state);
 }
 
 // Draw the title screen
 void fullDrawTitleScreen(void) {
-    fillScreenDMA(CLEAR_COLOR);
+    fillScreenDMA(TABLE_COLOR);
 
     drawCenteredString(15, 15, WIDTH - 30, 25, "Welcome to Ball in Hand!", BLACK);
     drawCenteredString(15, 40, WIDTH - 30, 25, "Press any button to start!", BLACK);
@@ -35,7 +43,7 @@ void fullDrawTitleScreen(void) {
 void undrawAppState(AppState *state) {
     UNUSED(state);
 
-    drawRectDMA(0, 0, 250, 25, CLEAR_COLOR);
+    //drawRectDMA(0, 0, 250, 25, TABLE_COLOR);
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -43,9 +51,11 @@ void undrawAppState(AppState *state) {
 void drawAppState(AppState *state) {
     UNUSED(state);
 
+    /*
     char buffer[128];
     sprintf(buffer, "cue theta = %d", FIXED_TO_INT(state->cue->angle));
     drawString(0, 0, buffer, BLUE);
+    */
 }
 
 void updateSprites(AppState *state, OBJ_ATTR *buffer) {

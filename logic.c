@@ -56,6 +56,24 @@ static void update_ball(ball_t *ball) {
         ball->vx = 0;
         ball->vy = 0;
     }
+
+    // Now reflect if we hit a wall
+    
+    if (ball->x - ball->radius < INT_TO_FIXED(20)) { // Hit left wall
+        ball->x = INT_TO_FIXED(20) + ball->radius + 1;
+        ball->vx = -ball->vx;
+    } else if (ball->x + ball->radius > INT_TO_FIXED(WIDTH - 20)) { // Hit right wall
+        ball->x = INT_TO_FIXED(WIDTH - 20) - ball->radius + 1;
+        ball->vx = -ball->vx;
+    }
+
+    if (ball->y - ball->radius < INT_TO_FIXED(20)) { // Hit top wall
+        ball->y = INT_TO_FIXED(20) + ball->radius + 1;
+        ball->vy = -ball->vy;
+    } else if (ball->y + ball->radius > INT_TO_FIXED(HEIGHT - 20)) { // Hit top wall
+        ball->y = INT_TO_FIXED(HEIGHT - 20) - ball->radius + 1;
+        ball->vy = -ball->vy;
+    }
 }
 
 static void collide(ball_t *a, ball_t *b) {
