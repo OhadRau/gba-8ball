@@ -47,21 +47,14 @@ static void update_ball(ball_t *ball) {
     ball->y += ball->vy;
 
     // Remember, velocities are fixed point
-    if (abs(ball->vx) < 2*FRICTION) {
+    // vx, vy decay from friction
+    fixed_t oldvx = ball->vx, oldvy = ball->vy;
+    ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
+    ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
+    // If friction calculation didn't work, just stop the balls 
+    if (ball->vx == oldvx && ball->vy == oldvy) {
         ball->vx = 0;
-    }
-    if (abs(ball->vy) < 2*FRICTION) {
         ball->vy = 0;
-    } else {
-        // vx, vy decay from friction
-        fixed_t oldvx = ball->vx, oldvy = ball->vy;
-        ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
-        ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
-        // If friction calculation didn't work, just stop the balls 
-        if (ball->vx >= oldvx && ball->vy >= oldvy) {
-            ball->vx = 0;
-            ball->vy = 0;
-        }
     }
 }
 
@@ -191,9 +184,6 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
      * to undraw it later.
      */
     AppState nextAppState = *currentAppState;
-
-    UNUSED(keysPressedBefore);
-    UNUSED(keysPressedNow);
 
     // Copy the cue ball into the new state (without reusing the same pointer)
     nextAppState.cue_ball = malloc(sizeof(ball_t));
