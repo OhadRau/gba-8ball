@@ -175,7 +175,7 @@ void initializeAppState(AppState *appState) {
 
     ball_t *cue_ball = malloc(sizeof(ball_t));
     cue_ball->color = WHITE;
-    cue_ball->radius = INT_TO_FIXED(5);
+    cue_ball->radius = INT_TO_FIXED(4);
     cue_ball->x = INT_TO_FIXED(WIDTH >> 3);
     cue_ball->y = INT_TO_FIXED((HEIGHT >> 1) - 5);
     // Velocities past 6.0 don't work well (overflow?)... Wonder if we can fix this?
@@ -298,7 +298,7 @@ void cleanupAppState(AppState *state) {
 // state of your application.
 void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow) {
     // If nothing is moving
-    if (no_balls_moving(state)) {
+    if (no_balls_moving(state)) { // Cue mode
         state->cue->alive = ENTITY_ALIVE;
         if (KEY_JUST_RELEASED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
             fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(state->cue->dist_from_ball, MAX_CUE_DISTANCE));
@@ -344,6 +344,19 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
             state->cue_ball->vx = 0;
             state->cue_ball->vy = 0;
             state->score--;
+        }
+
+        // Check for losses (8 ball in pocket when others are on the board)
+        if (check_pocket_collision(state->balls[7])) {
+            if (state->score == 14) { // No more balls left, we're good!
+                state->score++;
+                state->balls[7]->alive = ENTITY_DEAD;
+                state->gameOver = GAME_OVER_WIN;
+            } else {
+                state->balls[7]->alive = ENTITY_DEAD;
+                state->gameOver = GAME_OVER_LOSS;
+            }
+            return;
         }
 
         // Check collision of all the balls

@@ -35,6 +35,9 @@ typedef struct {
     int alive;
 } cue_t;
 
+#define GAME_OVER_WIN 1
+#define GAME_OVER_LOSS 2
+
 typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
