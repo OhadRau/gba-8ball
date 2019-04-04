@@ -10,6 +10,9 @@ void fullDrawAppState(AppState *state);
 // This function draws the title screen
 void fullDrawTitleScreen(void);
 
+// This function draws the game over screen
+void fullDrawGameOverScreen(AppState *state);
+
 // This function will be used to undraw (i.e. erase) things that might
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state);

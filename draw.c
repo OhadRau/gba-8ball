@@ -37,6 +37,21 @@ void fullDrawTitleScreen(void) {
     drawCenteredString(15, HEIGHT - 25, WIDTH - 30, 25, "Press any button to start!", WHITE);
 }
 
+void fullDrawGameOverScreen(AppState *state) {
+    drawFullScreenImageDMA((u16 *) startscreen);
+
+    switch (state->gameOver) {
+    case GAME_OVER_WIN:
+        drawCenteredString(15, HEIGHT - 40, WIDTH - 30, 25, "Congratulations! You win!", WHITE);
+        drawCenteredString(15, HEIGHT - 25, WIDTH - 30, 25, "Press SELECT to replay!", WHITE);
+        break;
+    case GAME_OVER_LOSS:
+        drawCenteredString(15, HEIGHT - 40, WIDTH - 30, 25, "Ouch, tough loss.", WHITE);
+        drawCenteredString(15, HEIGHT - 25, WIDTH - 30, 25, "Press SELECT to replay!", WHITE);
+        break;
+    }
+}
+
 // This function will be used to undraw (i.e. erase) things that might
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {

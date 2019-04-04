@@ -168,11 +168,18 @@ int main(void) {
                 waitForVBlank();
 
                 // TA-TODO: Draw the exit / gameover screen
+                fullDrawGameOverScreen(&appState);
+
+                // Hide all objects in the buffer
+                hide_objects();
+                // Apply the object buffer
+                oam_copy(oam_mem, obj_buffer, 16 + 4);
 
                 state = APP_EXIT_NODRAW;
                 break;
             case APP_EXIT_NODRAW:
                 // TA-TODO: Check for a button press here to go back to the start screen
+                // Would be redundant, since we already check for the reset button at the top of this loop :)
 
                 break;
         }

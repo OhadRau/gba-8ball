@@ -317,7 +317,10 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
             if (state->cue->dist_from_ball < MAX_CUE_DISTANCE) {
                 state->cue->dist_from_ball += FIXED_ONE;
             }
-        } else if (KEY_DOWN(BUTTON_LEFT, keysPressedNow)) {
+        }
+
+        // Allow the user to keep aiming after drawing back the cue
+        if (KEY_DOWN(BUTTON_LEFT, keysPressedNow)) {
             if (state->cue->angle <= 0) {
                 state->cue->angle += INT_TO_FIXED(360);
             }
