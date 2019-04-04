@@ -267,6 +267,16 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
             update_ball(state->balls[i]);
         }
 
+        // Check for scratches (cue ball in pocket)
+        if (check_pocket_collision(state->cue_ball)) {
+            // Reset to the break position & remove velocity to stop motion
+            state->cue_ball->x = INT_TO_FIXED(WIDTH >> 3);
+            state->cue_ball->y = INT_TO_FIXED((HEIGHT >> 1) - 5);
+            state->cue_ball->vx = 0;
+            state->cue_ball->vy = 0;
+            state->score--;
+        }
+
         // Check collision of all the balls
         // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
