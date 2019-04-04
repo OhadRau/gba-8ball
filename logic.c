@@ -184,6 +184,81 @@ void initializeAppState(AppState *appState) {
     cue_ball->alive = ENTITY_ALIVE;
     appState->cue_ball = cue_ball;
 
+    for (int i = 0; i < 15; i++) {
+        appState->balls[i] = malloc(sizeof(ball_t));
+        appState->balls[i]->color = BLUE;
+        appState->balls[i]->radius = INT_TO_FIXED(5);
+        // Don't initialize x, y yet... we'll do those during the racking stage
+        appState->balls[i]->vx = INT_TO_FIXED(0);
+        appState->balls[i]->vy = INT_TO_FIXED(0);
+        appState->balls[i]->alive = ENTITY_ALIVE;
+    }
+
+    /*
+    The racking order for pool requires 4 things:
+    - One at the front (i.e. position 0)
+    - Eight in the center of the 3rd row (i.e. position 4)
+    - The rear corners (i.e. positions 10 and 14) to be opposite colors (stripes vs. solids)
+
+    To generate a valid rack, we'll first set the known balls. We'll also use a short's
+    last 15 bits to represent which balls have been chosen.
+
+    BTW, can't tell if this is a bug in the random function (causing it to almost never return
+    the last number), but it seems to be exclusive rather than inclusive. If I use randint(0, 14)
+    then it will never return 14, causing the game to freeze when it runs out of balls, leaving
+    the 15 ball out of the new rack.
+    */
+
+    ball_t *rack[15];
+    short balls_used = 0;
+
+    // Choose the one ball for the front
+    rack[0] = appState->balls[0];
+    balls_used |= (1 << 0);
+
+    // Choose the eight ball for position 4
+    rack[4] = appState->balls[7];
+    balls_used |= (1 << 7);
+
+    // Choose the back left corner
+    int back_left_ball;
+    // Keep re-rolling till we get a ball that works
+    do {
+        // No need to try the 0 ball
+        back_left_ball = randint(1, 15);
+    } while (balls_used & (1 << back_left_ball));
+    rack[10] = appState->balls[back_left_ball];
+    balls_used |= (1 << back_left_ball);
+    
+    // Based on what color the back left corner was, pick the back right corner
+    int back_right_ball;
+    // Keep re-rolling till we get a ball that works
+    do {
+        if (back_left_ball < 7) { // Back left was solids
+            back_right_ball = randint(8, 15);
+        } else { // Back left was stripes
+            // No need to try the 0 ball
+            back_right_ball = randint(1, 7);
+        }
+    } while (balls_used & (1 << back_right_ball));
+    rack[14] = appState->balls[back_right_ball];
+    balls_used |= (1 << back_right_ball);
+
+
+    // And finally pick everything else
+    for (int i = 0; i < 14; i++) {
+        if (i == 0 || i == 4 || i == 10 || i == 14) {
+            continue; // Don't overwrite the balls we chose already!
+        }
+
+        int next_ball;
+        do {
+            next_ball = randint(1, 15);
+        } while (balls_used & (1 << next_ball));
+        rack[i] = appState->balls[next_ball];
+        balls_used |= (1 << next_ball);
+    }
+
     // Positions to place balls at to form a triangle:
     // (10 pixels per ball, 5 columns + 4 inner columns, 5 rows)
     int xs[] = {
@@ -203,14 +278,8 @@ void initializeAppState(AppState *appState) {
     };
 
     for (int i = 0; i < 15; i++) {
-        appState->balls[i] = malloc(sizeof(ball_t));
-        appState->balls[i]->color = BLUE;
-        appState->balls[i]->radius = INT_TO_FIXED(5);
-        appState->balls[i]->x = INT_TO_FIXED((WIDTH >> 1) + (WIDTH >> 3) + xs[i]);
-        appState->balls[i]->y = INT_TO_FIXED((HEIGHT >> 1) - 25 + ys[i]);
-        appState->balls[i]->vx = INT_TO_FIXED(0);
-        appState->balls[i]->vy = INT_TO_FIXED(0);
-        appState->balls[i]->alive = ENTITY_ALIVE;
+        rack[i]->x = INT_TO_FIXED((WIDTH >> 1) + (WIDTH >> 3) + xs[i]);
+        rack[i]->y = INT_TO_FIXED((HEIGHT >> 1) - 25 + ys[i]);
     }
 }
 
