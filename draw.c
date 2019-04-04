@@ -2,6 +2,7 @@
 #include "gba.h"
 
 #include "images/table.h"
+#include "images/startscreen.h"
 
 #include "genlut/lut.h"
 
@@ -30,10 +31,10 @@ void fullDrawAppState(AppState *state) {
 
 // Draw the title screen
 void fullDrawTitleScreen(void) {
-    fillScreenDMA(TABLE_COLOR);
+    drawFullScreenImageDMA((u16 *) startscreen);
 
-    drawCenteredString(15, 15, WIDTH - 30, 25, "Welcome to Ball in Hand!", BLACK);
-    drawCenteredString(15, 40, WIDTH - 30, 25, "Press any button to start!", BLACK);
+    drawCenteredString(15, HEIGHT - 40, WIDTH - 30, 25, "Welcome to Ball in Hand!", WHITE);
+    drawCenteredString(15, HEIGHT - 25, WIDTH - 30, 25, "Press any button to start!", WHITE);
 }
 
 // This function will be used to undraw (i.e. erase) things that might
