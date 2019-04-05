@@ -3,6 +3,20 @@
 #include "genlut/lut.h"
 #include "myLib.h"
 
+// Estimate for fixed point square root. Even though we have the FIXED_SQRT macro,
+// this one actually tends to work better in some places so I'm keeping both
+static fixed_t fixed_sqrt(fixed_t f) {
+    if (f < INT_TO_FIXED(2)) {
+        return f;
+    }
+    fixed_t next = fixed_sqrt(f >> 2) << 1;
+    if (FIXED_MULT((next + FIXED_ONE), (next + FIXED_ONE)) > f) {
+        return next;
+    } else {
+        return next + FIXED_ONE;
+    }
+}
+
 // Check to see whether two balls are colliding
 static int check_collision(ball_t *a, ball_t *b) {
     // Find the deltas of their positions
@@ -24,7 +38,9 @@ static int check_collision(ball_t *a, ball_t *b) {
     }
 
     // Calculate the square root of the distance
-    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    // For some reason this works better with the estimated version of fixed sqrt (prob because it rounds up?)
+    // For performance reasons, I'm using the builtin sqrt and then adding one which seems to work okay
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy)) + FIXED_ONE;
     
     return d <= max_dist;
 }
@@ -140,7 +156,11 @@ static void collide_static(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
-    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    // For some reason, static collisions work better with the estimated version of sqrt...
+    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    if (d == 0) {
+        d = FIXED_ONE;
+    }
     // Overlap = how much we'll need to push the balls apart
     fixed_t overlap = d - a->radius - b->radius;
 
