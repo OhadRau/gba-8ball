@@ -250,15 +250,6 @@ extern OBJ_AFFINE *obj_aff_buffer;
 void oam_init(OBJ_ATTR *obj, u32 count);
 void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, u32 count);
 
-// bit field set and get routines
-#define BF_PREP(x, name)         ( ((x)<<name##_SHIFT)& name##_MASK  )
-#define BF_GET(x, name)          ( ((x) & name##_MASK)>> name##_SHIFT )
-#define BF_SET(y, x, name)       (y = ((y)&~name##_MASK) | BF_PREP(x,name) )
-
-#define BF_PREP2(x, name)        ( (x) & name##_MASK )
-#define BF_GET2(y, name)         ( (y) & name##_MASK )
-#define BF_SET2(y, x, name)      (y = ((y)&~name##_MASK) | BF_PREP2(x, name) )
-
 void obj_set_pos(OBJ_ATTR *obj, int x, int y);
 void obj_hide(OBJ_ATTR *obj);
 void obj_aff_hide(OBJ_ATTR *obj);

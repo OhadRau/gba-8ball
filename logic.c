@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "genlut/lut.h"
 
-#define FRICTION 8
-
 /* Would love to use a LUT for this but there's some constraints:
    - Seems like precision of 1.0 doesn't cut it?
    - Hard to constrain to a certain range of values

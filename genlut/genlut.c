@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 
   FILE *header = fopen("lut.h", "w");
   fprintf(header, "#ifndef LUT_H\n#define LUT_H\n");
-  fprintf(header, "#include \"../logic.h\"\n");
+  fprintf(header, "#include \"../myLib.h\"\n");
   //fprintf(header, "#define FIXED_SQRT_POS(f) ((f) <= (1000 * FIXED_ONE/4) ? fixed_sqrt_table[(f)] : fixed_sqrt_table[(f)%%(1000 * FIXED_ONE/4)])\n");
   //fprintf(header, "#define FIXED_SQRT(f) ((f) < 0 ? FIXED_SQRT_POS(-(f)) : FIXED_SQRT_POS(f))\n");
   fprintf(header, "#define FIXED_SIN(f) (FIXED_TO_INT(f) <= 360 ? fixed_sin_table[FIXED_TO_INT(f)] : fixed_sin_table[FIXED_TO_INT(f)%%360])\n");
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   fclose(header);
 
   FILE *file = fopen("lut.c", "w");
-  fprintf(header, "#include \"../logic.h\"\n");
+  fprintf(header, "#include \"lut.h\"\n");
   print_lut(file, "fixed_sin_table", 0, FIXED_ONE, INT_TO_FIXED(360), &sin);
   print_lut(file, "fixed_cos_table", 0, FIXED_ONE, INT_TO_FIXED(360), &cos);
   fclose(file);

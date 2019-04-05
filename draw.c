@@ -1,5 +1,6 @@
 #include "draw.h"
 #include "gba.h"
+#include "myLib.h"
 
 #include "images/table.h"
 #include "images/startscreen.h"
@@ -7,9 +8,6 @@
 #include "genlut/lut.h"
 
 #include <stdio.h>
-
-#define MIN(x, y) ((x < y) ? x : y)
-#define MAX(x, y) ((x < y) ? y : x)
 
 //#define TABLE_COLOR COLOR(0, 12, 5)
 //#define WOOD_COLOR COLOR(6, 2, 0)

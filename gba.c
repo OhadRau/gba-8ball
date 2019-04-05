@@ -1,4 +1,5 @@
 #include "gba.h"
+#include "myLib.h"
 
 volatile unsigned short *videoBuffer = (volatile unsigned short *) 0x6000000;
 u32 vBlankCounter = 0;

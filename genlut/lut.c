@@ -1,4 +1,4 @@
-#include "../logic.h"
+#include "lut.h"
 fixed_t fixed_sin_table[] = {
   0,
   5,
