@@ -4,27 +4,36 @@
 
 #include "images/table.h"
 #include "images/startscreen.h"
+#include "images/powermeter.h"
 
 #include "genlut/lut.h"
 
 #include <stdio.h>
 
-//#define TABLE_COLOR COLOR(0, 12, 5)
-//#define WOOD_COLOR COLOR(6, 2, 0)
 #define TABLE_COLOR 0x15c6
 #define WOOD_COLOR 0x0066
+
+#define POWERBAR_CLEAR_COLOR 0x2108
+#define POWERBAR_FILL_COLOR GREEN
+
+#define POWERBAR_X (WIDTH - 6)
+#define POWERBAR_Y ((HEIGHT >> 1) - (POWERMETER_HEIGHT >> 1) + 3)
+#define POWERBAR_WIDTH (4)
+#define POWERBAR_HEIGHT ((POWERMETER_HEIGHT) - 6)
 
 // This function will be used to draw everything about the app
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
+    drawFullScreenImageDMA((u16 *) table);
+
+    drawImageDMA(WIDTH - 15, (HEIGHT >> 1) - (POWERMETER_HEIGHT >> 1), POWERMETER_WIDTH, POWERMETER_HEIGHT, (u16 *) powermeter);
+
     char buffer[32];
     sprintf(buffer, "Score: %d", state->score);
     drawString(2, 2, buffer, TABLE_COLOR);
 
     sprintf(buffer, "Turns: %d", state->turns);
     drawString(WIDTH - 60, 2, buffer, TABLE_COLOR);
-
-    drawFullScreenImageDMA((u16 *) table);
 }
 
 // Draw the title screen
@@ -54,6 +63,7 @@ void fullDrawGameOverScreen(AppState *state) {
 // move in a frame. E.g. in a Snake game, erase the Snake, the food & the score.
 void undrawAppState(AppState *state) {
     UNUSED(state);
+    drawRectDMA(POWERBAR_X, POWERBAR_Y, POWERBAR_WIDTH, POWERBAR_HEIGHT, POWERBAR_CLEAR_COLOR);
     drawRectDMA(2, 2, 60, 10, WOOD_COLOR);
     drawRectDMA(WIDTH - 60, 2, 60, 10, WOOD_COLOR);
 }
@@ -61,6 +71,11 @@ void undrawAppState(AppState *state) {
 // This function will be used to draw things that might have moved in a frame.
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state) {
+    fixed_t powerbar_fullness = FIXED_DIV(state->cue->dist_from_ball, MAX_CUE_DISTANCE);
+    fixed_t powerbar_height = FIXED_MULT(INT_TO_FIXED(POWERBAR_HEIGHT), powerbar_fullness);
+    fixed_t powerbar_start = INT_TO_FIXED(POWERBAR_Y + POWERBAR_HEIGHT) - powerbar_height;
+    drawRectDMA(POWERBAR_X, FIXED_TO_INT(powerbar_start), POWERBAR_WIDTH, FIXED_TO_INT(powerbar_height), POWERBAR_FILL_COLOR);
+
     char buffer[32];
     sprintf(buffer, "Score: %d", state->score);
     drawString(2, 2, buffer, TABLE_COLOR);

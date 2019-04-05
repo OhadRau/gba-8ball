@@ -1,6 +1,7 @@
 #include "logic.h"
 #include <stdlib.h>
 #include "genlut/lut.h"
+#include "myLib.h"
 
 /* Would love to use a LUT for this but there's some constraints:
    - Seems like precision of 1.0 doesn't cut it?
