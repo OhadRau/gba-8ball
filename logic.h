@@ -4,29 +4,29 @@
 #include "gba.h"
 #include "myLib.h"
 
+// Friction coefficient (V' = (1 - FRICTION) * V)
 #define FRICTION 8
 
 #define ENTITY_ALIVE 1
 #define ENTITY_DEAD 0
 
-#define MAX_CUE_STRENGTH INT_TO_FIXED(20)
-#define MAX_CUE_DISTANCE INT_TO_FIXED(40)
-
 typedef struct {
-    u16 color;
     fixed_t radius;
     fixed_t x, y;
     fixed_t vx, vy;
     int alive;
 } ball_t;
 
+#define MAX_CUE_STRENGTH INT_TO_FIXED(15)
+#define MAX_CUE_DISTANCE INT_TO_FIXED(40)
+
 typedef struct {
-    u16 color;
     fixed_t angle;
     fixed_t dist_from_ball;
     int alive;
 } cue_t;
 
+// Different statuses for gameOver so the main loops knows what screen to show the user
 #define GAME_OVER_WIN 1
 #define GAME_OVER_LOSS 2
 
@@ -50,8 +50,5 @@ void cleanupAppState(AppState *state);
 
 // This function will be used to process app frames.
 void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow);
-
-// If you have anything else you need accessible from outside the logic.c
-// file, you can add them here. You likely won't.
 
 #endif

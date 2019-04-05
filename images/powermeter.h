@@ -1,7 +1,7 @@
 /*
  * Exported with nin10kit v1.7
  * Invocation command was nin10kit --mode=3 powermeter power-meter.png 
- * Time-stamp: Friday 04/05/2019, 03:46:11
+ * Time-stamp: Friday 04/05/2019, 19:26:07
  * 
  * Image Information
  * -----------------

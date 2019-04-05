@@ -241,6 +241,7 @@ typedef struct {
 	s16 pd; // 8.8 fixed
 } __attribute__(( aligned(4) )) OBJ_AFFINE;
 
+// All this stuff deals with objects (sprites) in memory
 #define MEM_OAM 0x07000000
 #define oam_mem ((OBJ_ATTR *) MEM_OAM)
 
@@ -250,6 +251,7 @@ extern OBJ_AFFINE *obj_aff_buffer;
 void oam_init(OBJ_ATTR *obj, u32 count);
 void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, u32 count);
 
+// And these are convenience functions to modify a sprite's attributes
 void obj_set_pos(OBJ_ATTR *obj, int x, int y);
 void obj_hide(OBJ_ATTR *obj);
 void obj_aff_hide(OBJ_ATTR *obj);

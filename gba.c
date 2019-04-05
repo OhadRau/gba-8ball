@@ -90,8 +90,8 @@ void drawCenteredString(int x, int y, int width, int height, char *str, u16 colo
     drawString(col, row, str, color);
 }
 
-// From https://www.coranac.com/tonc/text/regobj.htm
-
+// Lots of code to deal with sprites (AKA objects) and affine sprites
+// Based on https://www.coranac.com/tonc/text/regobj.htm
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *) obj_buffer;
 
@@ -130,6 +130,7 @@ void oam_copy(OBJ_ATTR *dst, const OBJ_ATTR *src, u32 count)
 
 }
 
+// Convenience functions to change attributes of the sprites
 inline void obj_set_pos(OBJ_ATTR *obj, int x, int y) {
     BF_SET(obj->attr0, y, ATTR0_Y);
     BF_SET(obj->attr1, x, ATTR1_X);

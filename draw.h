@@ -21,9 +21,8 @@ void undrawAppState(AppState *state);
 // For example, in a Snake game, draw the snake, the food, the score.
 void drawAppState(AppState *state);
 
-// If you have anything else you need accessible from outside the graphics.c
-// file, you can add them here. You likely won't.
-
+// This is kinda arguable whether it belongs in draw.c, but it basically is in charge
+// of rendering for sprites, and does so by writing updated sprites to the object buffer
 void updateSprites(AppState *state, OBJ_ATTR *buffer);
 
 #endif

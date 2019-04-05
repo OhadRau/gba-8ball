@@ -37,11 +37,14 @@ debug : LDFLAGS += $(LDDEBUG)
 debug : $(PROGNAME).gba
 	@echo "[FINISH] Created $(PROGNAME).gba"
 
+bios.o : bios.s
+	$(AS) bios.s -o bios.o
+
 $(PROGNAME).gba : $(PROGNAME).elf
 	@echo "[LINK] Linking objects together to create $(PROGNAME).gba"
 	@$(OBJCOPY) -O binary $(PROGNAME).elf $(PROGNAME).gba
 
-$(PROGNAME).elf : crt0.o $(GCCLIB)/crtbegin.o $(GCCLIB)/crtend.o $(GCCLIB)/crti.o $(GCCLIB)/crtn.o $(OFILES) libc_sbrk.o
+$(PROGNAME).elf : crt0.o $(GCCLIB)/crtbegin.o $(GCCLIB)/crtend.o $(GCCLIB)/crti.o $(GCCLIB)/crtn.o $(OFILES) libc_sbrk.o bios.o
 	$(CC) -o $(PROGNAME).elf $^ $(LDFLAGS)
 
 .PHONY : emu

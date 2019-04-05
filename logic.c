@@ -3,70 +3,71 @@
 #include "genlut/lut.h"
 #include "myLib.h"
 
-/* Would love to use a LUT for this but there's some constraints:
-   - Seems like precision of 1.0 doesn't cut it?
-   - Hard to constrain to a certain range of values
-   - Doesn't wrap around like sin/cos, so hard to say what to do for OoB input
-   - Mostly, I just can't get this stuff to work with a LUT for some reason */
-static fixed_t fixed_sqrt(fixed_t f) {
-  if (f < INT_TO_FIXED(2)) {
-    return f;
-  }
-  fixed_t next = 2 * fixed_sqrt(f >> 2);
-  if (FIXED_MULT((next + FIXED_ONE), (next + FIXED_ONE)) > f) {
-    return next;
-  } else {
-    return next + FIXED_ONE;
-  }
-}
-
+// Check to see whether two balls are colliding
 static int check_collision(ball_t *a, ball_t *b) {
+    // Find the deltas of their positions
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
 
+    // Maximum distance is 2 radii, because if balls are just touching their edges are each 1 radius away from center
     fixed_t max_dist = a->radius + b->radius;
 
     // Calculating the sqrt is slow, so try to rule out false collisions early
+    // Check that both dx and dy are less than the max distance
     if (dx > max_dist || dy > max_dist) {
         return 0;
     }
 
-    // Now make sure the Manhattan distance is < 4r
+    // Now make sure the Manhattan distance (|dx| + |dy|) is < 4 radii (which would mean they're diagonal from eachother)
     if (abs(dx) + abs(dy) > 2 * max_dist) {
         return 0;
     }
 
-    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    // Calculate the square root of the distance
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
     
     return d <= max_dist;
 }
 
+// Check if the ball is in a pocket
 static int check_pocket_collision(ball_t *ball) {
+    // These positions are kind of hard coded (since the pockets really only exist in the background image)
+
+    // First check the top set of pockets
     if (ball->y <= INT_TO_FIXED(20 + 8)) {
+        // Left
         if (ball->x <= INT_TO_FIXED(20 + 8)) {
             return 1;
         }
+        // Middle
         if (ball->x >= INT_TO_FIXED((WIDTH >> 1) - 8) && ball->x <= INT_TO_FIXED((WIDTH >> 1) + 8)) {
             return 1;
         }
+        // Right
         if (ball->x >= INT_TO_FIXED(WIDTH - 20 - 8)) {
             return 1;
         }
-    } else if (ball->y >= INT_TO_FIXED(HEIGHT - 20 - 8)) {
+    } else if (ball->y >= INT_TO_FIXED(HEIGHT - 20 - 8)) { // Bottom set of pockets
+        // Left
         if (ball->x <= INT_TO_FIXED(20 + 8)) {
             return 1;
         }
+        // Middle
         if (ball->x >= INT_TO_FIXED((WIDTH >> 1) - 8) && ball->x <= INT_TO_FIXED((WIDTH >> 1) + 8)) {
             return 1;
         }
+        // Right
         if (ball->x >= INT_TO_FIXED(WIDTH - 20 - 8)) {
             return 1;
         }
     }
+    // If the ball wasn't in any of these locations, it's not in a pocket
     return 0;
 }
 
+// Calculate the movement for the ball
 static void update_ball(ball_t *ball) {
+    // The ball moves by the amount of the velocity
     ball->x += ball->vx;
     ball->y += ball->vy;
 
@@ -75,7 +76,10 @@ static void update_ball(ball_t *ball) {
     fixed_t oldvx = ball->vx, oldvy = ball->vy;
     ball->vx = FIXED_MULT(ball->vx, FIXED_ONE - FRICTION);
     ball->vy = FIXED_MULT(ball->vy, FIXED_ONE - FRICTION);
-    // If friction calculation didn't work, just stop the balls 
+
+    // If friction calculation didn't decrease the value of vx/vy, just stop the balls 
+    // This can happen if the vx/vy are too small, because multiplying by e.g. .9 won't
+    // change the number
     if (ball->vx == oldvx && ball->vy == oldvy) {
         ball->vx = 0;
         ball->vy = 0;
@@ -99,10 +103,13 @@ static void update_ball(ball_t *ball) {
     }
 }
 
+// Check if there's any balls still moving (so we know when to let the player shoot again)
 static int no_balls_moving(AppState *state) {
+    // Check the cue ball
     if (state->cue_ball->vx != 0 || state->cue_ball->vy != 0) {
         return 0;
     }
+    // And then the other balls
     for (int i = 0; i < 15; i++) {
         // Doesn't matter if it's moving if the ball is in a pocket
         if (state->balls[i]->alive == ENTITY_DEAD) {
@@ -112,6 +119,7 @@ static int no_balls_moving(AppState *state) {
             return 0;
         }
     }
+    // Return true if none of the balls were moving
     return 1;
 }
 
@@ -123,6 +131,7 @@ static int all_dead(AppState *state) {
         if (state->balls[i]->alive == ENTITY_ALIVE)
             return 0;
     }
+    // Return true if none of the balls were alive
     return 1;
 }
 
@@ -131,22 +140,28 @@ static void collide_static(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
-    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    // Overlap = how much we'll need to push the balls apart
     fixed_t overlap = d - a->radius - b->radius;
 
-    a->x -= FIXED_MULT(overlap, FIXED_DIV(dx, d)) >> 1;
-    a->y -= FIXED_MULT(overlap, FIXED_DIV(dy, d)) >> 1;
+    // Now shift the balls in opposite directions based on their overlap
+    fixed_t amt_to_move = FIXED_MULT(overlap, FIXED_DIV(dx, d)) >> 1;
 
-    b->x += FIXED_MULT(overlap, FIXED_DIV(dx, d)) >> 1;
-    b->y += FIXED_MULT(overlap, FIXED_DIV(dy, d)) >> 1;
+    a->x -= amt_to_move;
+    a->y -= amt_to_move;
+
+    b->x += amt_to_move;
+    b->y += amt_to_move;
 }
 
 // Dynamic collision resolution (bounce balls)
 static void collide_dynamic(ball_t *a, ball_t *b) {
+    // Lots of physics stuff I don't fully understand :O
+
     // Delta (distance) between balls
     fixed_t dx = a->x - b->x;
     fixed_t dy = a->y - b->y;
-    fixed_t d = fixed_sqrt(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
+    fixed_t d = FIXED_SQRT(FIXED_MULT(dx, dx) + FIXED_MULT(dy, dy));
 
     // Normal to collision
     // Division is slow, can we get rid of this?
@@ -171,24 +186,23 @@ static void collide_dynamic(ball_t *a, ball_t *b) {
     b->vy = FIXED_MULT(ty, dpTanB) + FIXED_MULT(ny, dpNormA);
 }
 
+// Set the default AppState stuff for a game startup
 void initializeAppState(AppState *appState) {
     appState->gameOver = 0;
     appState->score = 0;
     appState->turns = 0;
 
     cue_t *cue = malloc(sizeof(cue_t));
-    cue->color = YELLOW;
     cue->angle = INT_TO_FIXED(0);
     cue->dist_from_ball = INT_TO_FIXED(0);
     cue->alive = ENTITY_ALIVE;
     appState->cue = cue;
 
+    // Set the default position of the cue ball to (WIDTH / 8, HEIGHT / 2 - 5)
     ball_t *cue_ball = malloc(sizeof(ball_t));
-    cue_ball->color = WHITE;
     cue_ball->radius = INT_TO_FIXED(4);
     cue_ball->x = INT_TO_FIXED(WIDTH >> 3);
     cue_ball->y = INT_TO_FIXED((HEIGHT >> 1) - 5);
-    // Velocities past 6.0 don't work well (overflow?)... Wonder if we can fix this?
     cue_ball->vx = INT_TO_FIXED(0);
     cue_ball->vy = INT_TO_FIXED(0);
     cue_ball->alive = ENTITY_ALIVE;
@@ -196,7 +210,6 @@ void initializeAppState(AppState *appState) {
 
     for (int i = 0; i < 15; i++) {
         appState->balls[i] = malloc(sizeof(ball_t));
-        appState->balls[i]->color = BLUE;
         appState->balls[i]->radius = INT_TO_FIXED(5);
         // Don't initialize x, y yet... we'll do those during the racking stage
         appState->balls[i]->vx = INT_TO_FIXED(0);
@@ -287,6 +300,8 @@ void initializeAppState(AppState *appState) {
         00, 10, 20, 30, 40
     };
 
+    // Now place the balls according to racking order in the racking pattern
+    // defined above, relative to the point (.625 * WIDTH, HEIGHT/2 - 25)
     for (int i = 0; i < 15; i++) {
         rack[i]->x = INT_TO_FIXED((WIDTH >> 1) + (WIDTH >> 3) + xs[i]);
         rack[i]->y = INT_TO_FIXED((HEIGHT >> 1) - 25 + ys[i]);
@@ -305,43 +320,54 @@ void cleanupAppState(AppState *state) {
 }
 
 // This function processes your current app state and returns the new (i.e. next)
-// state of your application.
+// state of your application. This function is kinda behemoth but I find it easier
+// to deal with all the state in the same place here.
 void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow) {
-    // If nothing is moving
-    if (no_balls_moving(state)) { // Cue mode
+    // If nothing is moving, we're in cue mode
+    if (no_balls_moving(state)) {
+        // Make sure the cue is getting rendered
         state->cue->alive = ENTITY_ALIVE;
+        // When the user releases the A button, we take the shot
         if (KEY_JUST_RELEASED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
+            // Calculate the strength (basically % pulled back * max strength)
             fixed_t strength = FIXED_MULT(MAX_CUE_STRENGTH, FIXED_DIV(state->cue->dist_from_ball, MAX_CUE_DISTANCE));
+            // And the angle to move the ball (= -angle, but normalized to 360 degrees). Needed because the cue is on
+            // the opposite side of the ball vs. the way we want it to move
             fixed_t hit_angle = INT_TO_FIXED(360) - state->cue->angle;
 
+            // Translate the strength * the hit angle into a velocity vector
             fixed_t vx = FIXED_MULT(strength, FIXED_COS(hit_angle));
             fixed_t vy = FIXED_MULT(strength, FIXED_SIN(hit_angle));
 
             state->cue_ball->vx = vx;
             state->cue_ball->vy = vy;
 
+            // Now reset the cue because we finished the cue mode
             state->cue->dist_from_ball = 0;
             state->cue->alive = ENTITY_DEAD;
             state->turns++; // Increment turns counter
         } else if (KEY_DOWN(BUTTON_A, keysPressedNow)) {
+            // If the button is still getting held, just keep increasing until we hit the max distance
             if (state->cue->dist_from_ball < MAX_CUE_DISTANCE) {
-                state->cue->dist_from_ball += FIXED_ONE;
+                state->cue->dist_from_ball += FIXED_ONE >> 1;
             }
         }
 
         // Allow the user to keep aiming after drawing back the cue
         if (KEY_DOWN(BUTTON_LEFT, keysPressedNow)) {
+            // If the cue angle drops below 0 degrees, add 360 to normalize it
             if (state->cue->angle <= 0) {
                 state->cue->angle += INT_TO_FIXED(360);
             }
             state->cue->angle -= FIXED_ONE;
         } else if (KEY_DOWN(BUTTON_RIGHT, keysPressedNow)) {
+            // If the cue angle goes above 360 degrees, subtract 360 to normalize it
             if (state->cue->angle >= INT_TO_FIXED(360)) {
                 state->cue->angle -= INT_TO_FIXED(360);
             }
             state->cue->angle += FIXED_ONE;
         }
-    } else {
+    } else { // Not cue mode, because balls are still moving
         // Just calculate motion for all the balls
         update_ball(state->cue_ball);
 
@@ -351,7 +377,7 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
 
         // Check for scratches (cue ball in pocket)
         if (check_pocket_collision(state->cue_ball)) {
-            // Reset to the break position & remove velocity to stop motion
+            // Reset to the break position & remove velocity to stop motion + decrement score for a penalty
             state->cue_ball->x = INT_TO_FIXED(WIDTH >> 3);
             state->cue_ball->y = INT_TO_FIXED((HEIGHT >> 1) - 5);
             state->cue_ball->vx = 0;
@@ -365,11 +391,11 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
                 state->score++;
                 state->balls[7]->alive = ENTITY_DEAD;
                 state->gameOver = GAME_OVER_WIN;
-            } else {
+            } else { // Got the 8 ball in before other balls, so you lose
                 state->balls[7]->alive = ENTITY_DEAD;
                 state->gameOver = GAME_OVER_LOSS;
             }
-            return;
+            return; // Game over so just skip the rest of this function and yield back to main loop
         }
 
         // Check collision of all the balls
@@ -380,15 +406,16 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
                 continue;
             }
 
-            // Check to see if the ball is in a pocket
+            // Check to see if this ball is in a pocket, and "kill" it if so
             if (check_pocket_collision(state->balls[i])) {
                 state->balls[i]->alive = ENTITY_DEAD;
                 state->score++;
                 continue; // Don't check collision
             }
 
-            // Check against the cue ball
+            // Check against this ball's collisions the cue ball
             if (check_collision(state->cue_ball, state->balls[i])) {
+                // Note, we first resolve static collisions (so that balls don't get stuck) and then dynamic collisions
                 collide_static(state->cue_ball, state->balls[i]);
                 collide_dynamic(state->cue_ball, state->balls[i]);
             }
@@ -403,7 +430,7 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
                 // Don't compare to itself
                 if (i == j)
                     continue;
-                
+
                 if (check_collision(state->balls[i], state->balls[j])) {
                     collide_static(state->balls[i], state->balls[j]);
                     collide_dynamic(state->balls[i], state->balls[j]);
