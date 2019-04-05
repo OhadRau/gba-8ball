@@ -419,7 +419,6 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
         }
 
         // Check collision of all the balls
-        // There's probably a way to cut out repeated comparisons
         for (int i = 0; i < 15; i++) {
             // Skip balls that are in pockets
             if (state->balls[i]->alive == ENTITY_DEAD) {
@@ -440,16 +439,12 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
                 collide_dynamic(state->cue_ball, state->balls[i]);
             }
 
-            // Check against otehr balls
-            for (int j = 0; j < 15; j++) {
+            // Check against other balls (skipping combos that we've already checked)
+            for (int j = i + 1; j < 15; j++) {
                 // Skip balls that are in pockets
                 if (state->balls[j]->alive == ENTITY_DEAD) {
                     continue;
                 }
-
-                // Don't compare to itself
-                if (i == j)
-                    continue;
 
                 if (check_collision(state->balls[i], state->balls[j])) {
                     collide_static(state->balls[i], state->balls[j]);
