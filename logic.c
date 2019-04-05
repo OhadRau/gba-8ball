@@ -116,6 +116,17 @@ static int no_balls_moving(AppState *state) {
     return 1;
 }
 
+// Check if all (non-8 ball) balls are in pockets
+static int all_dead(AppState *state) {
+    for (int i = 0; i < 15; i++) {
+        if (i == 7) // Not including 8 ball
+            continue;
+        if (state->balls[i]->alive == ENTITY_ALIVE)
+            return 0;
+    }
+    return 1;
+}
+
 // Basic collision resolution (get balls unstuck)
 static void collide_static(ball_t *a, ball_t *b) {
     // Delta (distance) between balls
@@ -351,7 +362,7 @@ void processAppState(AppState *state, u32 keysPressedBefore, u32 keysPressedNow)
 
         // Check for losses (8 ball in pocket when others are on the board)
         if (check_pocket_collision(state->balls[7])) {
-            if (state->score == 14) { // No more balls left, we're good!
+            if (all_dead(state)) { // No more balls left, we're good!
                 state->score++;
                 state->balls[7]->alive = ENTITY_DEAD;
                 state->gameOver = GAME_OVER_WIN;
